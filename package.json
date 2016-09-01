@@ -1,0 +1,33 @@
+{
+  "name": "chunked-dc",
+  "version": "0.1.0",
+  "description": "Binary chunking for WebRTC data channels.",
+  "scripts": {
+    "build": "npm run build_code && npm run build_tests",
+    "build_code": "browserify -d -p tsify src/main.ts --standalone chunked-dc -o chunked-dc.js",
+    "build_tests": "browserify -d -p tsify tests/tests.ts -o tests/tests.js",
+    "dist": "browserify -p tsify src/main.ts --standalone chunked-dc -o chunked-dc.min.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saltyrtc/chunked-dc-js.git"
+  },
+  "keywords": [
+    "saltyrtc",
+    "webrtc",
+    "ortc",
+    "chunking"
+  ],
+  "author": "SaltyRTC Contributors",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/saltyrtc/chunked-dc-js/issues"
+  },
+  "homepage": "https://github.com/saltyrtc/chunked-dc-js#readme",
+  "devDependencies": {
+    "browserify": "^13.1.0",
+    "jasmine-core": "^2.5.0",
+    "tsify": "^1.0.4",
+    "typescript": "^1.8.10"
+  }
+}
