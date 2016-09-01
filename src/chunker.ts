@@ -13,26 +13,27 @@ export class Chunker implements chunkedDc.Chunker {
     private id: number;
     private chunkSize: number;
     private chunkId: number = 0;
-    private buf: Uint8Array;
+    private arr: Uint8Array;
 
     /**
      * Create a Chunker instance.
      *
-     * @param id An identifier for the message. Must be betwen 0 and 2**32-1.
-     * @param buf The Uint8Array containing the data that should be chunked.
+     * @param id An identifier for the message. Must be between 0 and 2**32-1.
+     * @param arr The Uint8Array containing the bytes that should be chunked.
      * @param chunkSize The chunk size *excluding* header data.
-     * @throws IllegalArgumentException if chunk size is less than 1
-     * @throws IllegalArgumentException if buffer is empty
      */
-    constructor(id: number, buf: Uint8Array, chunkSize: number) {
+    constructor(id: number, arr: Uint8Array, chunkSize: number) {
         if (chunkSize < 1) {
             throw new Error("Chunk size must be at least 1");
         }
-        if (buf.byteLength < 1) {
-            throw new Error("Buffer may not be empty");
+        if (arr.byteLength < 1) {
+            throw new Error("Array may not be empty");
+        }
+        if (id < 0 || id >= 2**32) {
+            throw new Error("Message id must be between 0 and 2**32-1");
         }
         this.id = id;
-        this.buf = buf;
+        this.arr = arr;
         this.chunkSize = chunkSize;
     }
 
@@ -41,7 +42,7 @@ export class Chunker implements chunkedDc.Chunker {
      */
     public next(): Uint8Array {
         const currentIndex = this.chunkId * this.chunkSize;
-        const remaining = this.buf.byteLength - currentIndex;
+        const remaining = this.arr.byteLength - currentIndex;
         if (remaining < 1) {
             return null;
         }
@@ -61,7 +62,7 @@ export class Chunker implements chunkedDc.Chunker {
         chunk.setUint32(5, serial);
         for (let i = 0; i < chunkBytes; i++) {
             const offset = Common.HEADER_LENGTH + i;
-            chunk.setUint8(offset, this.buf[currentIndex + i]);
+            chunk.setUint8(offset, this.arr[currentIndex + i]);
         }
         return new Uint8Array(chunk.buffer);
     }
