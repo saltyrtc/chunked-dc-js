@@ -1,5 +1,8 @@
 # Binary Chunking for WebRTC DataChannels
 
+[![Supported ES Standard](https://img.shields.io/badge/javascript-ES2015-orange.svg)](https://github.com/saltyrtc/chunked-dc-js)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/saltyrtc/chunked-dc-js)
+
 This library allows you to split up large binary messages into
 multiple chunks of a certain size.
 
@@ -95,3 +98,11 @@ This library has an extensive test suite. To run it:
     npm run build
 
 Then open `tests.html` in your browser to run the test suite.
+
+# License
+
+    Copyright (c) 2016 Threema GmbH / SaltyRTC Contributors
+    
+    Licensed under the Apache License, Version 2.0, <see LICENSE-APACHE file>
+    or the MIT license <see LICENSE-MIT file>, at your option. This file may not be
+    copied, modified, or distributed except according to those terms.
