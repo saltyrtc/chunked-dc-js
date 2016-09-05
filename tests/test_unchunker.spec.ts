@@ -181,6 +181,20 @@ export default () => { describe('Unchunker', function() {
         expect(logger.messages[0]).toEqual(Uint8Array.of(1, 2, 3, 4, 5, 6));
     });
 
+    it('supports garbage collection', async (done) => {
+        const unchunker = new chunkedDc.Unchunker();
+        expect(unchunker.gc(1000)).toEqual(0);
+        unchunker.add(Uint8Array.of( MORE, 0,0,0,1, 0,0,0,0, 1,2 ).buffer);
+        unchunker.add(Uint8Array.of( MORE, 0,0,0,1, 0,0,0,1, 3,4 ).buffer);
+        unchunker.add(Uint8Array.of( MORE, 0,0,0,2, 0,0,0,0, 1,2 ).buffer);
+        setTimeout(() => {
+            expect(unchunker.gc(1000)).toEqual(0);
+            expect(unchunker.gc(10)).toEqual(3);
+            expect(unchunker.gc(10)).toEqual(0);
+            done();
+        }, 20);
+    }, 1200);
+
     it('passes an integration test', () => {
         const unchunker = new chunkedDc.Unchunker();
         const logger = new LoggingUnchunker(unchunker);

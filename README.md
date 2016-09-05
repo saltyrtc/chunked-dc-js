@@ -13,9 +13,9 @@ receiver in any order.
 While the library was written for use with WebRTC
 DataChannels, it can also be used outside of that scope.
 
-# Usage
+## Usage
 
-## Chunking
+### Chunking
 
 For each message that you want to split into chunks, pass it to a `Chunker`.
 
@@ -37,7 +37,7 @@ while (chunker.hasNext()) {
 
 The example above will return 3 chunks: `[1, 2], [3, 4], [5]`.
 
-## Unchunking
+### Unchunking
 
 This library works both if chunks are sent in ordered or unordered manner.
 Because ordering is not guaranteed, the Unchunker instance accepts chunks and
@@ -66,6 +66,16 @@ let chunk = ...; // ArrayBuffer
 unchunker.add(chunk);
 ```
 
+### Cleanup
+
+Because the `Unchunker` instance needs to keep track of arrived chunks, it's
+possible that incomplete messages add up and use a lot of memory without ever
+being freed.
+
+To avoid this, simply call the `Unchunker.gc(maxAge: number)` method regularly.
+It will remove all incomplete messages that haven't been updated for more than
+`maxAge` milliseconds.
+
 ## Format
 
 A chunker instance splits up an `Uint8Array` into multiple chunks.
@@ -90,7 +100,7 @@ The Serial must start at 0 and be incremented after every message.
 
 No chunk may contain more bytes than the first one.
 
-# Testing
+## Testing
 
 This library has an extensive test suite. To run it:
 
@@ -99,7 +109,7 @@ This library has an extensive test suite. To run it:
 
 Then open `tests.html` in your browser to run the test suite.
 
-# License
+## License
 
     Copyright (c) 2016 Threema GmbH / SaltyRTC Contributors
     

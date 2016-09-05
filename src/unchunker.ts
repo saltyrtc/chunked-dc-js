@@ -152,6 +152,13 @@ class ChunkCollector {
         const age = (new Date().getTime() - this.lastUpdate);
         return age > maxAge;
     }
+
+    /**
+     * Return the number of registered chunks.
+     */
+    public get chunkCount(): number {
+        return this.chunks.length;
+    }
 }
 
 /**
@@ -219,5 +226,27 @@ export class Unchunker {
         }
     }
 
-    // TODO: GC
+    /**
+     * Run garbage collection, remove incomplete messages that haven't been
+     * updated for more than the specified number of milliseconds.
+     *
+     * If you want to make sure that invalid chunks don't fill up memory, call
+     * this method regularly.
+     *
+     * @param maxAge Remove incomplete messages that haven't been updated for
+     *               more than the specified number of milliseconds.
+     * @return the number of removed chunks.
+     */
+    public gc(maxAge: number): number {
+        let removedItems = 0;
+        for (let entry of this.chunks) {
+            const msgId: number = entry[0];
+            const collector: ChunkCollector = entry[1];
+            if (collector.isOlderThan(maxAge)) {
+                removedItems += collector.chunkCount;
+                this.chunks.delete(msgId);
+            }
+        }
+        return removedItems;
+    }
 }
