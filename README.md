@@ -1,5 +1,6 @@
 # Binary Chunking for WebRTC DataChannels
 
+[![Travis branch](https://img.shields.io/travis/saltyrtc/chunked-dc-js/master.svg)](https://travis-ci.org/saltyrtc/chunked-dc-js)
 [![Supported ES Standard](https://img.shields.io/badge/javascript-ES2015-orange.svg)](https://github.com/saltyrtc/chunked-dc-js)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/saltyrtc/chunked-dc-js)
 
