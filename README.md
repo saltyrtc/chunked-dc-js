@@ -22,7 +22,7 @@ For each message that you want to split into chunks, pass it to a `Chunker`.
 ```javascript
 let messageId = 1337;
 let message = Uint8Array.of(1, 2, 3, 4, 5);
-let chunkSize = 2;
+let chunkSize = 2; // Chunk size *excluding* header
 let chunker = new Chunker(messageId, message.buffer, chunkSize);
 ```
 
@@ -43,7 +43,7 @@ while (chunker.hasNext) {
 }
 ```
 
-The example above will return 3 chunks: `[1, 2], [3, 4], [5]`.
+The example above will return 3 chunks (header prefix not shown): `[1, 2], [3, 4], [5]`.
 
 ### Unchunking
 
