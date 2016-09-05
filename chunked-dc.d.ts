@@ -9,9 +9,10 @@ declare namespace chunkedDc {
 
     /** chunker.ts **/
 
-    interface Chunker {
-        next(): Uint8Array;
-        hasNext(): boolean;
+    interface Chunker extends IterableIterator<Uint8Array> {
+        hasNext: boolean;
+        next(): IteratorResult<Uint8Array>;
+        [Symbol.iterator](): IterableIterator<Uint8Array>;
     }
 
     interface ChunkerStatic {

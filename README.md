@@ -26,11 +26,19 @@ let chunkSize = 2;
 let chunker = new Chunker(messageId, message.buffer, chunkSize);
 ```
 
-You can then process all chunks:
+You can then process all chunks using the iterator/iterable protocol:
 
 ```javascript
-while (chunker.hasNext()) {
-    let chunk = chunker.next();
+for (let chunk of chunker) {
+    // Send chunk to peer
+}
+```
+
+Alternatively you can also use the `next()` method directly:
+
+```javascript
+while (chunker.hasNext) {
+    let chunk = chunker.next().value;
     // Send chunk to peer
 }
 ```

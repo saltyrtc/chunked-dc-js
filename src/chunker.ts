@@ -46,18 +46,20 @@ export class Chunker implements chunkedDc.Chunker {
     /**
      * Whether there are more chunks available.
      */
-    public hasNext(): boolean {
+    public get hasNext(): boolean {
         const currentIndex = this.chunkId * this.chunkSize;
         const remaining = this.message.byteLength - currentIndex;
         return remaining >= 1;
     }
 
     /**
-     * Return the next chunk, or `null` if there are no chunks remaining.
+     * Iterator implementation. Value is the next Uint8Array chunk.
      */
-    public next(): Uint8Array {
-        if (!this.hasNext()) {
-            return null;
+    public next(): IteratorResult<Uint8Array> {
+        if (!this.hasNext) {
+            return {
+                done: true
+            };
         }
 
         // Allocate chunk buffer
@@ -79,7 +81,10 @@ export class Chunker implements chunkedDc.Chunker {
             const offset = Common.HEADER_LENGTH + i;
             chunk.setUint8(offset, this.message[currentIndex + i]);
         }
-        return new Uint8Array(chunk.buffer);
+        return {
+            done: false,
+            value: new Uint8Array(chunk.buffer)
+        };
     }
 
     /**
@@ -87,6 +92,13 @@ export class Chunker implements chunkedDc.Chunker {
      */
     private nextSerial(): number {
         return this.chunkId++;
+    }
+
+    /**
+     * Return an iterator over the chunks.
+     */
+    public [Symbol.iterator](): IterableIterator<Uint8Array> {
+        return this;
     }
 
 }
