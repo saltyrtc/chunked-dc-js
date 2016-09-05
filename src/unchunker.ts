@@ -27,8 +27,8 @@ export class Chunk {
 
         // Read header
         const reader = new DataView(buf);
-        const config = reader.getUint8(0);
-        this._endOfMessage = (config & 0x01) == 1;
+        const options = reader.getUint8(0);
+        this._endOfMessage = (options & 0x01) == 1;
         this._id = reader.getUint32(1);
         this._serial = reader.getUint32(5);
 

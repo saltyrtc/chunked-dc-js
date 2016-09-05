@@ -6,7 +6,7 @@ export default () => { describe('Chunk', function() {
 
     it('parses valid data', () => {
         const arr = Uint8Array.of(
-            // Config
+            // Options
             0,
             // Id
             0xff, 0xff, 0xff, 0xfe,
@@ -24,7 +24,7 @@ export default () => { describe('Chunk', function() {
 
     it('parses empty data', () => {
         const arr = Uint8Array.of(
-            // Config
+            // Options
             1,
             // Id
             0, 0, 2, 0,

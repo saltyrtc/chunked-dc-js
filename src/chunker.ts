@@ -69,12 +69,12 @@ export class Chunker implements chunkedDc.Chunker {
         const chunk = new DataView(new ArrayBuffer(chunkBytes + Common.HEADER_LENGTH));
 
         // Create header
-        const config = remaining > chunkBytes ? 0 : 1;
+        const options = remaining > chunkBytes ? 0 : 1;
         const id = this.id;
         const serial = this.nextSerial();
 
         // Write to chunk buffer
-        chunk.setUint8(0, config);
+        chunk.setUint8(0, options);
         chunk.setUint32(1, id);
         chunk.setUint32(5, serial);
         for (let i = 0; i < chunkBytes; i++) {
