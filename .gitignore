@@ -1,0 +1,6 @@
+*.swp
+*.idea
+node_modules/
+chunked-dc.js
+test_chunker.spec.js
+tests/*.js

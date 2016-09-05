@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "target": "ES2015",
+        "removeComments": true
+    },
+    "exclude": [
+        "node_modules",
+        "tests",
+        "build",
+        "dist"
+    ]
+}
