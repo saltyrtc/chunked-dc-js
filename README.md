@@ -21,6 +21,8 @@ or ES2015 distribution from the `dist` directory.
 
     <script src="chunked-dc.es2015.min.js"></script>
 
+The ES5 versions are considerably larger because they also contain polyfills.
+
 All classes are namespaced under `chunkedDc`:
 
 - `chunkedDc.Chunker`
