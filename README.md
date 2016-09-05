@@ -3,6 +3,7 @@
 [![Travis branch](https://img.shields.io/travis/saltyrtc/chunked-dc-js/master.svg)](https://travis-ci.org/saltyrtc/chunked-dc-js)
 [![Supported ES Standard](https://img.shields.io/badge/javascript-ES5%2B-orange.svg)](https://github.com/saltyrtc/chunked-dc-js)
 [![License](https://img.shields.io/badge/license-MIT%20%2F%20Apache%202.0-blue.svg)](https://github.com/saltyrtc/chunked-dc-js)
+[![Version](https://img.shields.io/github/tag/saltyrtc/chunked-dc-js.svg)](https://github.com/saltyrtc/chunked-dc-js/releases)
 
 This library allows you to split up large binary messages into
 multiple chunks of a certain size.
