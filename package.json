@@ -20,7 +20,7 @@
     "chunking"
   ],
   "author": "SaltyRTC Contributors",
-  "license": "MIT",
+  "license": "MIT/Apache-2.0",
   "bugs": {
     "url": "https://github.com/saltyrtc/chunked-dc-js/issues"
   },
