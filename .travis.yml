@@ -1,0 +1,16 @@
+language: node_js
+node_js:
+  - "4"
+addons:
+  firefox: "45.0"
+before_script:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - npm install
+  - npm run build
+script:
+  - npm test
+  - |
+    mv tsconfig.json tsconfig.ignore
+    node_modules/.bin/tsc --target ES2015 --noEmit src/main.ts
+    mv tsconfig.ignore tsconfig.json
