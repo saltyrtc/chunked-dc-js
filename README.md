@@ -117,6 +117,11 @@ This library has an extensive test suite. To run it:
 
 Then open `tests.html` in your browser to run the test suite.
 
+## Type Declarations
+
+If you use TypeScript, simply reference the `chunked-dc.d.ts` type declaration
+file to get type checking and autocompletion.
+
 ## License
 
     Copyright (c) 2016 Threema GmbH / SaltyRTC Contributors
