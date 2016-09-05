@@ -2,4 +2,5 @@
 *.idea
 node_modules/
 chunked-dc.js
-tests.js
+test_chunker.spec.js
+tests/*.js
