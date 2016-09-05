@@ -6,6 +6,7 @@
     "build": "npm run build_code && npm run build_tests",
     "build_code": "browserify -d -p tsify src/main.ts --standalone chunked-dc -o chunked-dc.js",
     "build_tests": "browserify -d -p tsify tests/tests.ts -o tests/tests.js",
+    "test": "karma start --single-run --log-level=debug --colors",
     "dist": "browserify -p tsify src/main.ts --standalone chunked-dc -o chunked-dc.min.js"
   },
   "repository": {
@@ -27,6 +28,9 @@
   "devDependencies": {
     "browserify": "^13.1.0",
     "jasmine-core": "^2.5.0",
+    "karma": "^1.2.0",
+    "karma-firefox-launcher": "^1.0.0",
+    "karma-jasmine": "^1.0.2",
     "tsify": "^1.0.4",
     "typescript": "^1.8.10"
   }
