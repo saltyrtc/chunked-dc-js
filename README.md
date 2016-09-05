@@ -1,7 +1,7 @@
 # Binary Chunking for WebRTC DataChannels
 
 [![Travis branch](https://img.shields.io/travis/saltyrtc/chunked-dc-js/master.svg)](https://travis-ci.org/saltyrtc/chunked-dc-js)
-[![Supported ES Standard](https://img.shields.io/badge/javascript-ES2015-orange.svg)](https://github.com/saltyrtc/chunked-dc-js)
+[![Supported ES Standard](https://img.shields.io/badge/javascript-ES5%2B-orange.svg)](https://github.com/saltyrtc/chunked-dc-js)
 [![License](https://img.shields.io/badge/license-MIT%20%2F%20Apache%202.0-blue.svg)](https://github.com/saltyrtc/chunked-dc-js)
 
 This library allows you to split up large binary messages into
@@ -13,6 +13,23 @@ receiver in any order.
 
 While the library was written for use with WebRTC
 DataChannels, it can also be used outside of that scope.
+
+## Installing
+
+If you're writing a browser application, simply use the normal or minified ES5
+or ES2015 distribution from the `dist` directory.
+
+    <script src="chunked-dc.es2015.min.js"></script>
+
+All classes are namespaced under `chunkedDc`:
+
+- `chunkedDc.Chunker`
+- `chunkedDc.Unchunker`
+
+An npm release is pending (#12).
+
+To build the distributions yourself, simply run `npm install && npm run dist`
+in the main directory.
 
 ## Usage
 
