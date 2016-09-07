@@ -21,11 +21,11 @@ declare namespace chunkedDc {
 
     /** unchunker.ts **/
 
-    type MessageListener = (message: Uint8Array) => void;
+    type MessageListener = (message: Uint8Array, context?: any) => void;
 
     interface Unchunker {
         onMessage: MessageListener;
-        add(chunk: ArrayBuffer): void;
+        add(chunk: ArrayBuffer, context?: any): void;
         gc(maxAge: number): number;
     }
 

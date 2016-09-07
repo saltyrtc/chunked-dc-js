@@ -83,7 +83,7 @@ let unchunker = new Unchunker();
 Register a message listener:
 
 ```javascript
-unchunker.onMessage = (message: Uint8Array) => {
+unchunker.onMessage = (message: Uint8Array, context: any[]) => {
     // Do something with the received message
 };
 ```
@@ -94,6 +94,10 @@ Finally, when new chunks arrive, simply add them to the `Unchunker` instance:
 let chunk = ...; // ArrayBuffer
 unchunker.add(chunk);
 ```
+
+You may also pass some context object to the unchunker which will be stored
+together with the chunk. When the `onMessage` handler is notified, these
+context objects will be passed in as a list ordered by chunk serial.
 
 ### Cleanup
 
