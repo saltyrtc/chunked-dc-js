@@ -17,11 +17,12 @@ export class Chunk {
     private _id: number;
     private _serial: number;
     private _data: Uint8Array;
+    private _context: any;
 
     /**
      * Parse the ArrayBuffer.
      */
-    constructor(buf: ArrayBuffer) {
+    constructor(buf: ArrayBuffer, context?: any) {
         if (buf.byteLength < Common.HEADER_LENGTH) {
             throw new Error('Invalid chunk: Too short');
         }
@@ -38,6 +39,9 @@ export class Chunk {
         // This is less ideal for performance, but avoids bugs that can occur
         // by 3rd party modification of the ArrayBuffer.
         this._data = new Uint8Array(buf.slice(Common.HEADER_LENGTH));
+
+        // Store context
+        this._context = context;
     }
 
     public get isEndOfMessage(): boolean {
@@ -54,6 +58,10 @@ export class Chunk {
 
     public get data(): Uint8Array {
         return this._data;
+    }
+
+    public get context(): any {
+        return this._context;
     }
 }
 
@@ -108,10 +116,11 @@ class ChunkCollector {
      * Note: This implementation assumes that no chunk will be larger than the first one!
      * If this is not the case, an error may be thrown.
      *
-     * @return An `Uint8Array` containing the assembled message.
+     * @return An object containing the message as an `Uint8Array`
+     *         and a (possibly empty) list of context objects.
      * @throws Error if message is not yet complete.
      */
-    public merge(): Uint8Array {
+    public merge(): {message: Uint8Array, context: any[]} {
         // Preconditions
         if (!this.isComplete) {
             throw new Error('Not all chunks for this message have arrived yet.');
@@ -134,16 +143,23 @@ class ChunkCollector {
         // Add chunks to buffer
         let offset = 0;
         let firstSize = this.chunks[0].data.byteLength;
+        const contextList = [];
         for (let chunk of this.chunks) {
             if (chunk.data.byteLength > firstSize) {
                 throw new Error('No chunk may be larger than the first chunk of that message.');
             }
             buf.set(chunk.data, offset);
             offset += chunk.data.length;
+            if (chunk.context !== undefined) {
+                contextList.push(chunk.context);
+            }
         }
 
-        // Return array
-        return buf.slice(0, offset);
+        // Return result object
+        return {
+            message: buf.slice(0, offset),
+            context: contextList,
+        };
     }
 
     /**
@@ -174,17 +190,18 @@ export class Unchunker {
     /**
      * Message listener. Set by the user.
      */
-    public onMessage: (message: Uint8Array) => void = null;
+    public onMessage: (message: Uint8Array, context?: any[]) => void = null;
 
     /**
      * Add a chunk.
      *
      * @param buf ArrayBuffer containing chunk with 9 byte header.
+     * @param context Arbitrary data that will be registered with the chunk and will be passed to the callback.
      * @throws Error if message is smaller than the header length.
      */
-    public add(buf: ArrayBuffer): void {
+    public add(buf: ArrayBuffer, context?: any): void {
         // Parse chunk
-        const chunk = new Chunk(buf);
+        const chunk = new Chunk(buf, context);
 
         // Ignore repeated chunks with the same serial
         if (this.chunks.has(chunk.id) && this.chunks.get(chunk.id).hasSerial(chunk.serial)) {
@@ -193,7 +210,7 @@ export class Unchunker {
 
         // If this is the only chunk in the message, return it immediately.
         if (chunk.isEndOfMessage && chunk.serial == 0) {
-            this.notifyListener(chunk.data);
+            this.notifyListener(chunk.data, context === undefined ? [] : [context]);
             this.chunks.delete(chunk.id);
             return;
         }
@@ -211,7 +228,8 @@ export class Unchunker {
         // Check if message is complete
         if (collector.isComplete) {
             // Merge and notify listener...
-            this.notifyListener(collector.merge());
+            const merged = collector.merge();
+            this.notifyListener(merged.message, merged.context);
             // ...then delete the chunks.
             this.chunks.delete(chunk.id);
         }
@@ -219,11 +237,10 @@ export class Unchunker {
 
     /**
      * If a message listener is set, notify it about a complete message.
-     * @param message
      */
-    private notifyListener(message: Uint8Array) {
+    private notifyListener(message: Uint8Array, context: any[]) {
         if (this.onMessage != null) {
-            this.onMessage(message);
+            this.onMessage(message, context);
         }
     }
 
