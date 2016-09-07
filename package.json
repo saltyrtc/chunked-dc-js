@@ -40,6 +40,7 @@
     "karma": "^1.2.0",
     "karma-firefox-launcher": "^1.0.0",
     "karma-jasmine": "^1.0.2",
+    "minifyify": "^7.3.3",
     "tsify": "^1.0.4",
     "typescript": "^1.8.10"
   }
