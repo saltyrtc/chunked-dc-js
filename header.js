@@ -1,5 +1,5 @@
 /*
-** chunked-dc-js version 0.1.0 (2016-09-05).
+** chunked-dc-js version 0.1.1 (2016-09-07).
 **
 ** https://github.com/saltyrtc/chunked-dc-js
 **
