@@ -1,7 +1,7 @@
 {
   "name": "chunked-dc",
   "version": "0.1.1",
-  "description": "Binary chunking for WebRTC data channels.",
+  "description": "Binary chunking for WebRTC data channels & more.",
   "scripts": {
     "build": "npm run build_code && npm run build_tests",
     "build_code": "browserify -d -p tsify src/main.ts --standalone chunked-dc -o chunked-dc.js",

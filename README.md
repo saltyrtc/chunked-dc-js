@@ -27,12 +27,14 @@ or ES2015 distribution from the `dist` directory.
 
 The ES5 versions are considerably larger because they also contain polyfills.
 
+Alternatively, simply install the library via `npm`:
+
+    npm install chunked-dc
+
 All classes are namespaced under `chunkedDc`:
 
 - `chunkedDc.Chunker`
 - `chunkedDc.Unchunker`
-
-An npm release is pending (#12).
 
 To build the distributions yourself, simply run `npm install && npm run dist`
 in the main directory.
@@ -133,7 +135,7 @@ file to get type checking and autocompletion.
 
 ## License
 
-    Copyright (c) 2016 Threema GmbH / SaltyRTC Contributors
+    Copyright (c) 2016 Threema GmbH
     
     Licensed under the Apache License, Version 2.0, <see LICENSE-APACHE file>
     or the MIT license <see LICENSE-MIT file>, at your option. This file may not be
