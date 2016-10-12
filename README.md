@@ -15,6 +15,9 @@ receiver in any order.
 While the library was written for use with WebRTC
 DataChannels, it can also be used outside of that scope.
 
+The full specification for the chunking format can be found
+[here](https://github.com/saltyrtc/saltyrtc-meta/blob/master/Chunking.md).
+
 ## Installing
 
 If you're writing a browser application, simply use the normal or minified ES5
@@ -111,27 +114,8 @@ It will remove all incomplete messages that haven't been updated for more than
 
 ## Format
 
-A chunker instance splits up an `Uint8Array` into multiple chunks.
-
-A header is added to each chunk:
-
-    |O|IIII|SSSS|
-
-    - O: Options bitfield (1 byte)
-    - I: Id (4 bytes)
-    - S: Serial number (4 bytes)
-
-The options bitfield looks as follows:
-
-    |000000E|
-           ^---- End-of-message
-
-The Id can be any number, but it's recommended to start at 0 and
-increment the counter for each message.
-
-The Serial must start at 0 and be incremented after every message.
-
-No chunk may contain more bytes than the first one.
+The chunking format is described
+[in the specification](https://github.com/saltyrtc/saltyrtc-meta/blob/master/Chunking.md).
 
 ## Testing
 
