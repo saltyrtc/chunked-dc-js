@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/saltyrtc/chunked-dc-js.git"
+    "url": "https://github.com/saltyrtc/chunked-dc-js.git"
   },
   "keywords": [
     "saltyrtc",
@@ -23,7 +23,7 @@
     "ortc",
     "chunking"
   ],
-  "author": "SaltyRTC Contributors",
+  "author": "Threema GmbH",
   "license": "MIT/Apache-2.0",
   "bugs": {
     "url": "https://github.com/saltyrtc/chunked-dc-js/issues"
