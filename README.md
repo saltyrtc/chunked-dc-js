@@ -51,7 +51,7 @@ For each message that you want to split into chunks, pass it to a `Chunker`.
 let messageId = 1337;
 let message = Uint8Array.of(1, 2, 3, 4, 5);
 let chunkSize = 2; // Chunk size *excluding* header
-let chunker = new Chunker(messageId, message.buffer, chunkSize);
+let chunker = new Chunker(messageId, message, chunkSize);
 ```
 
 You can then process all chunks using the iterator/iterable protocol:
