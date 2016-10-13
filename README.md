@@ -121,6 +121,11 @@ It will remove all incomplete messages that haven't been updated for more than
 The chunking format is described
 [in the specification](https://github.com/saltyrtc/saltyrtc-meta/blob/master/Chunking.md).
 
+## Type Declarations
+
+If you use TypeScript, simply reference the `chunked-dc.d.ts` type declaration
+file to get type checking and autocompletion.
+
 ## Testing
 
 This library has an extensive test suite. To run it:
@@ -130,10 +135,30 @@ This library has an extensive test suite. To run it:
 
 Then open `tests.html` in your browser to run the test suite.
 
-## Type Declarations
+## Releasing
 
-If you use TypeScript, simply reference the `chunked-dc.d.ts` type declaration
-file to get type checking and autocompletion.
+Set variables:
+
+    $ export VERSION=X.Y.Z
+    $ export GPG_KEY=E7ADD9914E260E8B35DFB50665FDE935573ACDA6
+
+Update version numbers:
+
+    $ vim -p package.json CHANGELOG.md
+
+Build dist files:
+
+    $ npm run dist
+
+Commit & tag:
+
+    $ git commit -m "Release v${VERSION}"
+    $ git tag -s -u ${GPG_KEY} v${VERSION} -m "Version ${VERSION}"
+
+Push & publish:
+
+    $ git push && git push --tags
+    $ npm publish
 
 ## License
 
