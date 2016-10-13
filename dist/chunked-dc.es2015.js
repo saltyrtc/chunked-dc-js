@@ -1,5 +1,5 @@
 /**
- * chunked-dc v0.1.1
+ * chunked-dc v0.1.2
  * Binary chunking for WebRTC data channels & more.
  * https://github.com/saltyrtc/chunked-dc-js#readme
  *
@@ -9,7 +9,6 @@
  * or the MIT license <see LICENSE-MIT file>, at your option. This file may not be
  * copied, modified, or distributed except according to those terms.
  */
-'use strict';
 
 class Common {
 }

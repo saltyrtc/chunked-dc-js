@@ -12,6 +12,10 @@ Possible log types:
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
 
+### v0.1.2 (2016-10-13)
+
+- [changed] Switch from browserify to rollup
+
 ### v0.1.1 (2016-09-07)
 
 - [added] Implement support for chunk context
