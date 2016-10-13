@@ -7,7 +7,7 @@ before_script:
   - export DISPLAY=:99.0
   - sh -e /etc/init.d/xvfb start
   - npm install
-  - npm run build
+  - npm run rollup_tests
 script:
   # Tests should work
   - npm test
