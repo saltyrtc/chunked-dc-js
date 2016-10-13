@@ -4,4 +4,5 @@ node_modules/
 chunked-dc.js
 test_chunker.spec.js
 tests/*.js
+tests/*.js.map
 npm-debug.log

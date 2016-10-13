@@ -21,17 +21,19 @@ The full specification for the chunking format can be found
 ## Installing
 
 If you're writing a browser application, simply use the normal or minified ES5
-or ES2015 distribution from the `dist` directory.
+distribution from the `dist` directory.
 
-    <script src="chunked-dc.es2015.min.js"></script>
+    <script src="chunked-dc.es5.min.js"></script>
 
-The ES5 versions are considerably larger because they also contain polyfills.
+If you have a build pipeline yourself, you may also want to use the ES2015
+version instead. The ES5 versions are considerably larger because they also
+contain polyfills.
 
 Alternatively, simply install the library via `npm`:
 
     npm install chunked-dc
 
-All classes are namespaced under `chunkedDc`:
+All classes in the ES5 version are namespaced under `chunkedDc`:
 
 - `chunkedDc.Chunker`
 - `chunkedDc.Unchunker`
@@ -124,7 +126,7 @@ The chunking format is described
 This library has an extensive test suite. To run it:
 
     npm install
-    npm run build
+    npm run rollup_tests
 
 Then open `tests.html` in your browser to run the test suite.
 

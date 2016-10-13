@@ -1,18 +1,20 @@
-/*
-** chunked-dc-js version 0.1.0 (2016-09-05).
-**
-** https://github.com/saltyrtc/chunked-dc-js
-**
-** Copyright (C) 2016 Threema GmbH / SaltyRTC Contributors
-**
-** Licensed under the Apache License, Version 2.0, <see LICENSE-APACHE file>
-** or the MIT license <see LICENSE-MIT file>, at your option. This file may not be
-** copied, modified, or distributed except according to those terms.
-*/
+/**
+ * chunked-dc v0.1.1
+ * Binary chunking for WebRTC data channels & more.
+ * https://github.com/saltyrtc/chunked-dc-js#readme
+ *
+ * Copyright (C) 2016 Threema GmbH
+ *
+ * Licensed under the Apache License, Version 2.0, <see LICENSE-APACHE file>
+ * or the MIT license <see LICENSE-MIT file>, at your option. This file may not be
+ * copied, modified, or distributed except according to those terms.
+ */
+'use strict';
 
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.chunkedDc = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-"use strict";
-const common_1 = require("./common");
+class Common {
+}
+Common.HEADER_LENGTH = 9;
+
 class Chunker {
     constructor(id, message, chunkSize) {
         this.chunkId = 0;
@@ -43,7 +45,7 @@ class Chunker {
         const currentIndex = this.chunkId * this.chunkSize;
         const remaining = this.message.byteLength - currentIndex;
         const chunkBytes = remaining < this.chunkSize ? remaining : this.chunkSize;
-        const chunk = new DataView(new ArrayBuffer(chunkBytes + common_1.Common.HEADER_LENGTH));
+        const chunk = new DataView(new ArrayBuffer(chunkBytes + Common.HEADER_LENGTH));
         const options = remaining > chunkBytes ? 0 : 1;
         const id = this.id;
         const serial = this.nextSerial();
@@ -51,7 +53,7 @@ class Chunker {
         chunk.setUint32(1, id);
         chunk.setUint32(5, serial);
         for (let i = 0; i < chunkBytes; i++) {
-            const offset = common_1.Common.HEADER_LENGTH + i;
+            const offset = Common.HEADER_LENGTH + i;
             chunk.setUint8(offset, this.message[currentIndex + i]);
         }
         return {
@@ -66,28 +68,10 @@ class Chunker {
         return this;
     }
 }
-exports.Chunker = Chunker;
 
-},{"./common":2}],2:[function(require,module,exports){
-"use strict";
-class Common {
-}
-Common.HEADER_LENGTH = 9;
-exports.Common = Common;
-
-},{}],3:[function(require,module,exports){
-"use strict";
-var chunker_1 = require("./chunker");
-exports.Chunker = chunker_1.Chunker;
-var unchunker_1 = require("./unchunker");
-exports.Unchunker = unchunker_1.Unchunker;
-
-},{"./chunker":1,"./unchunker":4}],4:[function(require,module,exports){
-"use strict";
-const common_1 = require("./common");
 class Chunk {
-    constructor(buf) {
-        if (buf.byteLength < common_1.Common.HEADER_LENGTH) {
+    constructor(buf, context) {
+        if (buf.byteLength < Common.HEADER_LENGTH) {
             throw new Error('Invalid chunk: Too short');
         }
         const reader = new DataView(buf);
@@ -95,7 +79,8 @@ class Chunk {
         this._endOfMessage = (options & 0x01) == 1;
         this._id = reader.getUint32(1);
         this._serial = reader.getUint32(5);
-        this._data = new Uint8Array(buf.slice(common_1.Common.HEADER_LENGTH));
+        this._data = new Uint8Array(buf.slice(Common.HEADER_LENGTH));
+        this._context = context;
     }
     get isEndOfMessage() {
         return this._endOfMessage;
@@ -109,8 +94,10 @@ class Chunk {
     get data() {
         return this._data;
     }
+    get context() {
+        return this._context;
+    }
 }
-exports.Chunk = Chunk;
 class ChunkCollector {
     constructor() {
         this.messageLength = null;
@@ -151,14 +138,21 @@ class ChunkCollector {
         const buf = new Uint8Array(new ArrayBuffer(capacity));
         let offset = 0;
         let firstSize = this.chunks[0].data.byteLength;
+        const contextList = [];
         for (let chunk of this.chunks) {
             if (chunk.data.byteLength > firstSize) {
                 throw new Error('No chunk may be larger than the first chunk of that message.');
             }
             buf.set(chunk.data, offset);
             offset += chunk.data.length;
+            if (chunk.context !== undefined) {
+                contextList.push(chunk.context);
+            }
         }
-        return buf.slice(0, offset);
+        return {
+            message: buf.slice(0, offset),
+            context: contextList,
+        };
     }
     isOlderThan(maxAge) {
         const age = (new Date().getTime() - this.lastUpdate);
@@ -173,13 +167,13 @@ class Unchunker {
         this.chunks = new Map();
         this.onMessage = null;
     }
-    add(buf) {
-        const chunk = new Chunk(buf);
+    add(buf, context) {
+        const chunk = new Chunk(buf, context);
         if (this.chunks.has(chunk.id) && this.chunks.get(chunk.id).hasSerial(chunk.serial)) {
             return;
         }
         if (chunk.isEndOfMessage && chunk.serial == 0) {
-            this.notifyListener(chunk.data);
+            this.notifyListener(chunk.data, context === undefined ? [] : [context]);
             this.chunks.delete(chunk.id);
             return;
         }
@@ -193,13 +187,14 @@ class Unchunker {
         }
         collector.addChunk(chunk);
         if (collector.isComplete) {
-            this.notifyListener(collector.merge());
+            const merged = collector.merge();
+            this.notifyListener(merged.message, merged.context);
             this.chunks.delete(chunk.id);
         }
     }
-    notifyListener(message) {
+    notifyListener(message, context) {
         if (this.onMessage != null) {
-            this.onMessage(message);
+            this.onMessage(message, context);
         }
     }
     gc(maxAge) {
@@ -215,7 +210,5 @@ class Unchunker {
         return removedItems;
     }
 }
-exports.Unchunker = Unchunker;
 
-},{"./common":2}]},{},[3])(3)
-});
+export { Chunker, Unchunker };

@@ -5,5 +5,5 @@
  * or the MIT license <see LICENSE-MIT file>, at your option. This file may not be
  * copied, modified, or distributed except according to those terms.
  */
-import "babel-es6-polyfill"; // Include ES5 polyfills
+import "../node_modules/babel-es6-polyfill/browser-polyfill"; // Include ES5 polyfills
 export { Chunker, Unchunker } from "./main";
