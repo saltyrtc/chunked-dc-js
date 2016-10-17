@@ -59,7 +59,8 @@ export class Chunker implements chunkedDc.Chunker {
     public next(): IteratorResult<Uint8Array> {
         if (!this.hasNext) {
             return {
-                done: true
+                done: true,
+                value: null
             };
         }
 
