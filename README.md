@@ -23,11 +23,11 @@ The full specification for the chunking format can be found
 If you're writing a browser application, simply use the normal or
 minified ES5 distribution from the `dist` directory.
 
-    <script src="chunked-dc.es5.min.js"></script>
+    <script src="chunked-dc.es5.min.polyfill.js"></script>
 
-If you have a build pipeline yourself, you may also want to use the
-ES2015 version instead. The ES5 versions are considerably larger because
-they also contain polyfills.
+If you have a build pipeline yourself, you may also want to use the ES2015
+version instead. The ES5 polyfill version is considerably larger because it
+also contains ES5 polyfills.
 
 Alternatively, simply install the library via `npm`:
 
