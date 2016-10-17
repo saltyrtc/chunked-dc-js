@@ -18,7 +18,7 @@ import {Common} from "./common";
 export class Chunker implements chunkedDc.Chunker {
 
     private id: number;
-    private chunkSize: number;
+    private chunkDataSize: number;
     private chunkId: number = 0;
     private message: Uint8Array;
 
@@ -27,11 +27,11 @@ export class Chunker implements chunkedDc.Chunker {
      *
      * @param id An identifier for the message. Must be between 0 and 2**32-1.
      * @param message The Uint8Array containing the bytes that should be chunked.
-     * @param chunkSize The chunk size *excluding* header data.
+     * @param chunkSize The chunk size *including* header data.
      */
     constructor(id: number, message: Uint8Array, chunkSize: number) {
-        if (chunkSize < 1) {
-            throw new Error("Chunk size must be at least 1");
+        if (chunkSize < (Common.HEADER_LENGTH + 1)) {
+            throw new Error("Chunk size must be at least " + (Common.HEADER_LENGTH + 1));
         }
         if (message.byteLength < 1) {
             throw new Error("Array may not be empty");
@@ -41,14 +41,14 @@ export class Chunker implements chunkedDc.Chunker {
         }
         this.id = id;
         this.message = message;
-        this.chunkSize = chunkSize;
+        this.chunkDataSize = chunkSize - Common.HEADER_LENGTH;
     }
 
     /**
      * Whether there are more chunks available.
      */
     public get hasNext(): boolean {
-        const currentIndex = this.chunkId * this.chunkSize;
+        const currentIndex = this.chunkId * this.chunkDataSize;
         const remaining = this.message.byteLength - currentIndex;
         return remaining >= 1;
     }
@@ -65,9 +65,9 @@ export class Chunker implements chunkedDc.Chunker {
         }
 
         // Allocate chunk buffer
-        const currentIndex = this.chunkId * this.chunkSize;
+        const currentIndex = this.chunkId * this.chunkDataSize;
         const remaining = this.message.byteLength - currentIndex;
-        const chunkBytes = remaining < this.chunkSize ? remaining : this.chunkSize;
+        const chunkBytes = remaining < this.chunkDataSize ? remaining : this.chunkDataSize;
         const chunk = new DataView(new ArrayBuffer(chunkBytes + Common.HEADER_LENGTH));
 
         // Create header
