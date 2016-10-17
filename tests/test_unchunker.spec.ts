@@ -1,12 +1,14 @@
 /// <reference path="jasmine.d.ts" />
 /// <reference path="../chunked-dc.d.ts" />
 
+import {Unchunker} from "../src/main";
+
 /**
  * A wrapper around the unchunker that stores finished messages in a list.
  */
 class LoggingUnchunker {
     public messages: Uint8Array[] = [];
-    constructor(unchunker: chunkedDc.Unchunker) {
+    constructor(unchunker: Unchunker) {
         unchunker.onMessage = (message: Uint8Array) => {
             this.messages.push(message);
         }
@@ -45,7 +47,7 @@ export default () => { describe('Unchunker', function() {
     describe('base', () => {
 
         it('unchunkifies regular messages', () => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             const logger = new LoggingUnchunker(unchunker);
 
             expect(logger.messages.length).toEqual(0);
@@ -59,7 +61,7 @@ export default () => { describe('Unchunker', function() {
         });
 
         it('unchunkifies single-chunk messages', () => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             const logger = new LoggingUnchunker(unchunker);
 
             expect(logger.messages.length).toEqual(0);
@@ -71,7 +73,7 @@ export default () => { describe('Unchunker', function() {
         });
 
         it('unchunkifies empty single-chunk messages', () => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             const logger = new LoggingUnchunker(unchunker);
 
             expect(logger.messages.length).toEqual(0);
@@ -83,7 +85,7 @@ export default () => { describe('Unchunker', function() {
         });
 
         it('unchunkifies multiple messages in parallel', () => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             const logger = new LoggingUnchunker(unchunker);
 
             expect(logger.messages.length).toEqual(0);
@@ -99,7 +101,7 @@ export default () => { describe('Unchunker', function() {
         });
 
         it('supports out of order messages', () => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             const logger = new LoggingUnchunker(unchunker);
 
             unchunker.add(Uint8Array.of(MORE, 0, 0, 0, ID, 0, 0, 0, 1, 3, 4).buffer);
@@ -115,7 +117,7 @@ export default () => { describe('Unchunker', function() {
         });
 
         it('does not notify listeners for incomplete messages', () => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             const logger = new LoggingUnchunker(unchunker);
 
             // End chunk with serial 1, no chunk with serial 0
@@ -125,13 +127,13 @@ export default () => { describe('Unchunker', function() {
         });
 
         it('does not accept invalid chunks', () => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             const add = () => unchunker.add(Uint8Array.of(1, 2, 3).buffer);
             expect(add).toThrowError('Invalid chunk: Too short');
         });
 
         it('does not accept empty first chunks', () => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
 
             unchunker.add(Uint8Array.of(MORE, 0, 0, 0, ID, 0, 0, 0, 0).buffer);
             unchunker.add(Uint8Array.of(MORE, 0, 0, 0, ID, 0, 0, 0, 1, 1, 2).buffer);
@@ -140,7 +142,7 @@ export default () => { describe('Unchunker', function() {
         });
 
         it('ignores repeated chunks with the same serial', () => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             const logger = new LoggingUnchunker(unchunker);
 
             unchunker.add(Uint8Array.of(MORE, 0, 0, 0, ID, 0, 0, 0, 0, 1, 2).buffer);
@@ -152,7 +154,7 @@ export default () => { describe('Unchunker', function() {
         });
 
         it('ignores end chunks with the same serial', () => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             const logger = new LoggingUnchunker(unchunker);
 
             unchunker.add(Uint8Array.of(MORE, 0, 0, 0, ID, 0, 0, 0, 0, 1, 2).buffer);
@@ -164,13 +166,13 @@ export default () => { describe('Unchunker', function() {
         });
 
         it('does not break if there\'s no listener registered', () => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             const add = () => unchunker.add(Uint8Array.of(END, 0, 0, 0, ID, 0, 0, 0, 0, 1, 2, 3).buffer);
             expect(add).not.toThrowError();
         });
 
         it('notifies listeners that have been added after receiving some msgs', () => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
 
             unchunker.add(Uint8Array.of(MORE, 0, 0, 0, ID, 0, 0, 0, 0, 1, 2).buffer);
             unchunker.add(Uint8Array.of(MORE, 0, 0, 0, ID, 0, 0, 0, 1, 3, 4).buffer);
@@ -188,7 +190,7 @@ export default () => { describe('Unchunker', function() {
     describe('cleanup', () => {
 
         it('supports garbage collection', async(done) => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             expect(unchunker.gc(1000)).toEqual(0);
             unchunker.add(Uint8Array.of(MORE, 0, 0, 0, 1, 0, 0, 0, 0, 1, 2).buffer);
             unchunker.add(Uint8Array.of(MORE, 0, 0, 0, 1, 0, 0, 0, 1, 3, 4).buffer);
@@ -206,7 +208,7 @@ export default () => { describe('Unchunker', function() {
     describe('context', () => {
 
         it('passes an empty context list to the handler by default', async(done) => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             unchunker.onMessage = (message: Uint8Array, context: any[]) => {
                 expect(context).toEqual([]);
                 done();
@@ -217,7 +219,7 @@ export default () => { describe('Unchunker', function() {
         });
 
         it('passes sorted context objects to the handler', async(done) => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             unchunker.onMessage = (message: Uint8Array, context: any[]) => {
                 expect(context).toEqual([1, 2, 3]);
                 done();
@@ -228,7 +230,7 @@ export default () => { describe('Unchunker', function() {
         });
 
         it('passes single-chunk context objects to the handler', async(done) => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             unchunker.onMessage = (message: Uint8Array, context: any[]) => {
                 expect(context).toEqual([42]);
                 done();
@@ -237,7 +239,7 @@ export default () => { describe('Unchunker', function() {
         });
 
         it('only passes defined context objects to the handler', async(done) => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             unchunker.onMessage = (message: Uint8Array, context: any[]) => {
                 expect(context).toEqual([1, 3]);
                 done();
@@ -252,7 +254,7 @@ export default () => { describe('Unchunker', function() {
     describe('integration', () => {
 
         it('passes an integration test', () => {
-            const unchunker = new chunkedDc.Unchunker();
+            const unchunker = new Unchunker();
             const logger = new LoggingUnchunker(unchunker);
 
             expect(logger.messages.length).toEqual(0);
