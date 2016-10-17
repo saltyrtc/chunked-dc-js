@@ -12,6 +12,10 @@ Possible log types:
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
 
+### v0.2.2 (2016-10-17)
+
+- [added] Add "module" and "types" fields to package.json
+
 ### v0.2.1 (2016-10-17)
 
 - [changed] Make polyfills in ES5 distribution optional
