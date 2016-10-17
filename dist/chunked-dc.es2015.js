@@ -1,5 +1,5 @@
 /**
- * chunked-dc v0.1.2
+ * chunked-dc v0.2.0
  * Binary chunking for WebRTC data channels & more.
  * https://github.com/saltyrtc/chunked-dc-js#readme
  *
@@ -17,8 +17,8 @@ Common.HEADER_LENGTH = 9;
 class Chunker {
     constructor(id, message, chunkSize) {
         this.chunkId = 0;
-        if (chunkSize < 1) {
-            throw new Error("Chunk size must be at least 1");
+        if (chunkSize < (Common.HEADER_LENGTH + 1)) {
+            throw new Error("Chunk size must be at least " + (Common.HEADER_LENGTH + 1));
         }
         if (message.byteLength < 1) {
             throw new Error("Array may not be empty");
@@ -28,22 +28,23 @@ class Chunker {
         }
         this.id = id;
         this.message = message;
-        this.chunkSize = chunkSize;
+        this.chunkDataSize = chunkSize - Common.HEADER_LENGTH;
     }
     get hasNext() {
-        const currentIndex = this.chunkId * this.chunkSize;
+        const currentIndex = this.chunkId * this.chunkDataSize;
         const remaining = this.message.byteLength - currentIndex;
         return remaining >= 1;
     }
     next() {
         if (!this.hasNext) {
             return {
-                done: true
+                done: true,
+                value: null
             };
         }
-        const currentIndex = this.chunkId * this.chunkSize;
+        const currentIndex = this.chunkId * this.chunkDataSize;
         const remaining = this.message.byteLength - currentIndex;
-        const chunkBytes = remaining < this.chunkSize ? remaining : this.chunkSize;
+        const chunkBytes = remaining < this.chunkDataSize ? remaining : this.chunkDataSize;
         const chunk = new DataView(new ArrayBuffer(chunkBytes + Common.HEADER_LENGTH));
         const options = remaining > chunkBytes ? 0 : 1;
         const id = this.id;

@@ -1,5 +1,5 @@
 /**
- * chunked-dc v0.1.2
+ * chunked-dc v0.2.0
  * Binary chunking for WebRTC data channels & more.
  * https://github.com/saltyrtc/chunked-dc-js#readme
  *
@@ -2605,123 +2605,6 @@ require('./$.collection')('WeakSet', {
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {});
 },{}]},{},[1]);
 
-var asyncGenerator = function () {
-  function AwaitValue(value) {
-    this.value = value;
-  }
-
-  function AsyncGenerator(gen) {
-    var front, back;
-
-    function send(key, arg) {
-      return new Promise(function (resolve, reject) {
-        var request = {
-          key: key,
-          arg: arg,
-          resolve: resolve,
-          reject: reject,
-          next: null
-        };
-
-        if (back) {
-          back = back.next = request;
-        } else {
-          front = back = request;
-          resume(key, arg);
-        }
-      });
-    }
-
-    function resume(key, arg) {
-      try {
-        var result = gen[key](arg);
-        var value = result.value;
-
-        if (value instanceof AwaitValue) {
-          Promise.resolve(value.value).then(function (arg) {
-            resume("next", arg);
-          }, function (arg) {
-            resume("throw", arg);
-          });
-        } else {
-          settle(result.done ? "return" : "normal", result.value);
-        }
-      } catch (err) {
-        settle("throw", err);
-      }
-    }
-
-    function settle(type, value) {
-      switch (type) {
-        case "return":
-          front.resolve({
-            value: value,
-            done: true
-          });
-          break;
-
-        case "throw":
-          front.reject(value);
-          break;
-
-        default:
-          front.resolve({
-            value: value,
-            done: false
-          });
-          break;
-      }
-
-      front = front.next;
-
-      if (front) {
-        resume(front.key, front.arg);
-      } else {
-        back = null;
-      }
-    }
-
-    this._invoke = send;
-
-    if (typeof gen.return !== "function") {
-      this.return = undefined;
-    }
-  }
-
-  if (typeof Symbol === "function" && Symbol.asyncIterator) {
-    AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
-      return this;
-    };
-  }
-
-  AsyncGenerator.prototype.next = function (arg) {
-    return this._invoke("next", arg);
-  };
-
-  AsyncGenerator.prototype.throw = function (arg) {
-    return this._invoke("throw", arg);
-  };
-
-  AsyncGenerator.prototype.return = function (arg) {
-    return this._invoke("return", arg);
-  };
-
-  return {
-    wrap: function (fn) {
-      return function () {
-        return new AsyncGenerator(fn.apply(this, arguments));
-      };
-    },
-    await: function (value) {
-      return new AwaitValue(value);
-    }
-  };
-}();
-
-
-
-
-
 var classCallCheck = function (instance, Constructor) {
   if (!(instance instanceof Constructor)) {
     throw new TypeError("Cannot call a class as a function");
@@ -2826,8 +2709,8 @@ var Chunker = function () {
         classCallCheck(this, Chunker);
 
         this.chunkId = 0;
-        if (chunkSize < 1) {
-            throw new Error("Chunk size must be at least 1");
+        if (chunkSize < Common.HEADER_LENGTH + 1) {
+            throw new Error("Chunk size must be at least " + (Common.HEADER_LENGTH + 1));
         }
         if (message.byteLength < 1) {
             throw new Error("Array may not be empty");
@@ -2837,7 +2720,7 @@ var Chunker = function () {
         }
         this.id = id;
         this.message = message;
-        this.chunkSize = chunkSize;
+        this.chunkDataSize = chunkSize - Common.HEADER_LENGTH;
     }
 
     createClass(Chunker, [{
@@ -2845,12 +2728,13 @@ var Chunker = function () {
         value: function next() {
             if (!this.hasNext) {
                 return {
-                    done: true
+                    done: true,
+                    value: null
                 };
             }
-            var currentIndex = this.chunkId * this.chunkSize;
+            var currentIndex = this.chunkId * this.chunkDataSize;
             var remaining = this.message.byteLength - currentIndex;
-            var chunkBytes = remaining < this.chunkSize ? remaining : this.chunkSize;
+            var chunkBytes = remaining < this.chunkDataSize ? remaining : this.chunkDataSize;
             var chunk = new DataView(new ArrayBuffer(chunkBytes + Common.HEADER_LENGTH));
             var options = remaining > chunkBytes ? 0 : 1;
             var id = this.id;
@@ -2880,7 +2764,7 @@ var Chunker = function () {
     }, {
         key: "hasNext",
         get: function get() {
-            var currentIndex = this.chunkId * this.chunkSize;
+            var currentIndex = this.chunkId * this.chunkDataSize;
             var remaining = this.message.byteLength - currentIndex;
             return remaining >= 1;
         }

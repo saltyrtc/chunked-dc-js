@@ -12,6 +12,10 @@ Possible log types:
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
 
+### v0.2.0 (2016-10-17)
+
+- [changed] Specified chunk size now includes header size
+
 ### v0.1.2 (2016-10-13)
 
 - [changed] Switch from browserify to rollup
