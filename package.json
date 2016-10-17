@@ -1,6 +1,6 @@
 {
   "name": "chunked-dc",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Binary chunking for WebRTC data channels & more.",
   "main": "dist/chunked-dc.es5.min.js",
   "jsnext:main": "dist/chunked-dc.es2015.js",
