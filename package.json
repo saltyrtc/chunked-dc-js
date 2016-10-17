@@ -4,6 +4,8 @@
   "description": "Binary chunking for WebRTC data channels & more.",
   "main": "dist/chunked-dc.es5.min.js",
   "jsnext:main": "dist/chunked-dc.es2015.js",
+  "module": "dist/chunked-dc.es2015.js",
+  "types": "dist/chunked-dc.d.ts",
   "scripts": {
     "dist": "npm run dist_es5 && npm run dist_es5_min && npm run dist_es5_min_polyfill && npm run dist_es2015 && cp chunked-dc.d.ts dist/",
     "dist_es5": "rollup -c rollup/es5.js",
