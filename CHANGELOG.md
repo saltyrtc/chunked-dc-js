@@ -12,6 +12,10 @@ Possible log types:
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
 
+### v0.2.3 (2016-10-19)
+
+- [removed] Don't copy the type declarations to the dist directory. It confuses TypeScript.
+
 ### v0.2.2 (2016-10-17)
 
 - [added] Add "module" and "types" fields to package.json
