@@ -1,5 +1,5 @@
 /**
- * chunked-dc v0.2.3
+ * chunked-dc v1.0.0
  * Binary chunking for WebRTC data channels & more.
  * https://github.com/saltyrtc/chunked-dc-js#readme
  *

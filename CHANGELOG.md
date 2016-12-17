@@ -12,6 +12,10 @@ Possible log types:
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
 
+### v1.0.0 (2016-12-17)
+
+- No change compared to v0.2.3. But the relase should be stable now.
+
 ### v0.2.3 (2016-10-19)
 
 - [removed] Don't copy the type declarations to the dist directory. It confuses TypeScript.
