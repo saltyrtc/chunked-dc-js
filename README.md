@@ -18,6 +18,7 @@ DataChannels, it can also be used outside of that scope.
 The full specification for the chunking format can be found
 [here](https://github.com/saltyrtc/saltyrtc-meta/blob/master/Chunking.md).
 
+
 ## Installing
 
 If you're writing a browser application, simply use the normal or
@@ -40,6 +41,7 @@ All classes in the ES5 version are namespaced under `chunkedDc`:
 
 To build the distributions yourself, simply run `npm install && npm run dist`
 in the main directory.
+
 
 ## Usage
 
@@ -118,15 +120,18 @@ To avoid this, simply call the `Unchunker.gc(maxAge: number)` method
 regularly. It will remove all incomplete messages that haven't been
 updated for more than `maxAge` milliseconds.
 
+
 ## Format
 
 The chunking format is described
 [in the specification](https://github.com/saltyrtc/saltyrtc-meta/blob/master/Chunking.md).
 
+
 ## Type Declarations
 
 If you use TypeScript, simply reference the `chunked-dc.d.ts` type
 declaration file to get type checking and autocompletion.
+
 
 ## Testing
 
@@ -137,30 +142,6 @@ This library has an extensive test suite. To run it:
 
 Then open `tests.html` in your browser to run the test suite.
 
-## Releasing
-
-Set variables:
-
-    $ export VERSION=X.Y.Z
-    $ export GPG_KEY=E7ADD9914E260E8B35DFB50665FDE935573ACDA6
-
-Update version numbers:
-
-    $ vim -p package.json CHANGELOG.md
-
-Build dist files:
-
-    $ npm run dist
-
-Commit & tag:
-
-    $ git commit -m "Release v${VERSION}"
-    $ git tag -s -u ${GPG_KEY} v${VERSION} -m "Version ${VERSION}"
-
-Push & publish:
-
-    $ git push && git push --tags
-    $ npm publish
 
 ## License
 
