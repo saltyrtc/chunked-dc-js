@@ -1,5 +1,5 @@
 {
-  "name": "chunked-dc",
+  "name": "@saltyrtc/chunked-dc",
   "version": "1.0.0",
   "description": "Binary chunking for WebRTC data channels & more.",
   "main": "dist/chunked-dc.es5.min.js",

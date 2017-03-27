@@ -2,8 +2,8 @@
 
 [![Travis branch](https://img.shields.io/travis/saltyrtc/chunked-dc-js/master.svg)](https://travis-ci.org/saltyrtc/chunked-dc-js)
 [![Supported ES Standard](https://img.shields.io/badge/javascript-ES5%20%2F%20ES2015-yellow.svg)](https://github.com/saltyrtc/chunked-dc-js)
-[![npm Version](https://img.shields.io/npm/v/chunked-dc.svg?maxAge=86400)](https://www.npmjs.com/package/chunked-dc)
-[![npm Downloads](https://img.shields.io/npm/dt/chunked-dc.svg?maxAge=86400)](https://www.npmjs.com/package/chunked-dc)
+[![npm Version](https://img.shields.io/npm/v/@saltyrtc/chunked-dc.svg?maxAge=86400)](https://www.npmjs.com/package/@saltyrtc/chunked-dc)
+[![npm Downloads](https://img.shields.io/npm/dt/@saltyrtc/chunked-dc.svg?maxAge=86400)](https://www.npmjs.com/package/@saltyrtc/chunked-dc)
 [![License](https://img.shields.io/badge/license-MIT%20%2F%20Apache%202.0-blue.svg)](https://github.com/saltyrtc/chunked-dc-js)
 
 This library allows you to split up large binary messages into multiple
@@ -32,7 +32,7 @@ also contains ES5 polyfills.
 
 Alternatively, simply install the library via `npm`:
 
-    npm install chunked-dc
+    npm install --save @saltyrtc/chunked-dc
 
 All classes in the ES5 version are namespaced under `chunkedDc`:
 
