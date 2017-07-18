@@ -251,6 +251,28 @@ export default () => { describe('Unchunker', function() {
 
     });
 
+    describe('transform', () => {
+
+        it('applies transformation function to chunks', () => {
+            function increment(data: Uint8Array) {
+                return data.map(x => x + 1);
+            }
+
+            const unchunker = new Unchunker(increment);
+            const logger = new LoggingUnchunker(unchunker);
+
+            expect(logger.messages.length).toEqual(0);
+
+            unchunker.add(Uint8Array.of(MORE, 0, 0, 0, ID, 0, 0, 0, 0, 1, 2, 3).buffer);
+            unchunker.add(Uint8Array.of(MORE, 0, 0, 0, ID, 0, 0, 0, 1, 4, 5, 6).buffer);
+            unchunker.add(Uint8Array.of(END, 0, 0, 0, ID, 0, 0, 0, 2, 7, 8).buffer);
+
+            expect(logger.messages.length).toEqual(1);
+            expect(logger.messages[0]).toEqual(Uint8Array.of(2, 3, 4, 5, 6, 7, 8, 9));
+        });
+
+    });
+
     describe('integration', () => {
 
         it('passes an integration test', () => {

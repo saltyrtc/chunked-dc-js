@@ -110,6 +110,23 @@ stored together with the chunk. When the `onMessage` handler is
 notified, these context objects will be passed in as a list ordered by
 chunk serial.
 
+```
+let chunk = ...; // ArrayBuffer
+let context = ...;
+unchunker.add(chunk, context);
+```
+
+Finally, if you want to apply a transformation function to every chunk as it is
+added, pass it to the constructor:
+
+```
+let transformFunc = (data) => data.map(x => x + 1);
+let unchunker = new Unchunker(transformFunc);
+```
+
+This is useful for example if you want to decrypt every chunk as it arrives,
+instead of waiting for the entire message to be reassembled.
+
 ### Cleanup
 
 Because the `Unchunker` instance needs to keep track of arrived chunks,

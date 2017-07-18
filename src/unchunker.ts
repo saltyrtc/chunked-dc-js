@@ -44,6 +44,13 @@ export class Chunk {
         this._context = context;
     }
 
+    /**
+     * Apply a transform function on the chunk data.
+     */
+    public applyTransform(transform: chunkedDc.DataTransform): void {
+        this._data = transform(this._data);
+    }
+
     public get isEndOfMessage(): boolean {
         return this._endOfMessage;
     }
@@ -186,6 +193,19 @@ class ChunkCollector {
  */
 export class Unchunker {
     private chunks: Map<number, ChunkCollector> = new Map();
+    private transform: chunkedDc.DataTransform = null;
+
+    /**
+     * Create a new Unchunker instance.
+     *
+     * If a transform function is passed in, it will be applied to every
+     * incoming chunk.
+     */
+    constructor(transform?: chunkedDc.DataTransform) {
+        if (transform !== undefined) {
+            this.transform = transform;
+        }
+    }
 
     /**
      * Message listener. Set by the user.
@@ -215,13 +235,16 @@ export class Unchunker {
             return;
         }
 
-        // Otherwise, add chunk to chunks list
+        // Otherwise, transform the data and add chunk to chunks list
         let collector: ChunkCollector;
         if (this.chunks.has(chunk.id)) {
             collector = this.chunks.get(chunk.id);
         } else {
             collector = new ChunkCollector();
             this.chunks.set(chunk.id, collector);
+        }
+        if (this.transform !== null) {
+            chunk.applyTransform(this.transform);
         }
         collector.addChunk(chunk);
 

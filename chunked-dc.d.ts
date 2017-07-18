@@ -23,6 +23,8 @@ declare namespace chunkedDc {
 
     type MessageListener = (message: Uint8Array, context?: any) => void;
 
+    type DataTransform = (data: Uint8Array) => Uint8Array;
+
     interface Unchunker {
         onMessage: MessageListener;
         add(chunk: ArrayBuffer, context?: any): void;
