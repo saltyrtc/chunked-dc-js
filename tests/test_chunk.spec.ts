@@ -1,47 +1,63 @@
 /// <reference path="jasmine.d.ts" />
 
-import {Chunk} from "../src/unchunker";
+import {createChunk, Chunk} from "../src/unchunker";
 
 export default () => { describe('Chunk', function() {
 
-    it('parses valid data', () => {
-        const arr = Uint8Array.of(
-            // Options
-            0,
-            // Id
-            0xff, 0xff, 0xff, 0xfe,
-            // Serial
-            0, 0, 0, 1,
-            // Data
-            1, 2, 3, 4, 5, 6
-        );
-        const chunk = new Chunk(arr.buffer);
-        expect(chunk.isEndOfMessage).toBe(false);
-        expect(chunk.id).toEqual(4294967294);
-        expect(chunk.serial).toEqual(1);
-        expect(chunk.data).toEqual(Uint8Array.of(1, 2, 3, 4, 5, 6));
-    });
+    const chunkVariants = [
+        {
+            name: 'BlobChunk',
+            createBuffer: (data) => new Blob([new Uint8Array(data)]),
+        }, {
+            name: 'Uint8ArrayChunk',
+            createBuffer: (data) => new Uint8Array(data),
+        },
+    ];
 
-    it('parses empty data', () => {
-        const arr = Uint8Array.of(
-            // Options
-            1,
-            // Id
-            0, 0, 2, 0,
-            // Serial
-            0, 0, 0, 1
-        );
-        const chunk = new Chunk(arr.buffer);
-        expect(chunk.isEndOfMessage).toBe(true);
-        expect(chunk.id).toEqual(512);
-        expect(chunk.serial).toEqual(1);
-        expect(chunk.data).toEqual(new Uint8Array(0));
-    });
+    chunkVariants.forEach((chunkVariant) => {
+        describe(chunkVariant.name, () => {
+            it('parses valid data', async() => {
+                const chunk = await createChunk(chunkVariant.createBuffer([
+                    // Options
+                    0,
+                    // Id
+                    0xff, 0xff, 0xff, 0xfe,
+                    // Serial
+                    0, 0, 0, 1,
+                    // Data
+                    1, 2, 3, 4, 5, 6
+                ]));
+                expect(chunk.isEndOfMessage).toBe(false);
+                expect(chunk.id).toEqual(4294967294);
+                expect(chunk.serial).toEqual(1);
+                expect(chunk.data).toEqual(chunkVariant.createBuffer([1, 2, 3, 4, 5, 6]));
+            });
 
-    it('rejects invalid chunks', () => {
-        const arr = Uint8Array.of(1, 2, 3);
-        const parse = () => new Chunk(arr.buffer);
-        expect(parse).toThrowError("Invalid chunk: Too short");
+            it('parses empty data', async() => {
+                const chunk = await createChunk(chunkVariant.createBuffer([
+                    // Options
+                    1,
+                    // Id
+                    0, 0, 2, 0,
+                    // Serial
+                    0, 0, 0, 1
+                ]));
+                expect(chunk.isEndOfMessage).toBe(true);
+                expect(chunk.id).toEqual(512);
+                expect(chunk.serial).toEqual(1);
+                expect(chunk.data).toEqual(chunkVariant.createBuffer([]));
+            });
+
+            it('rejects invalid chunks', async() => {
+                const data = chunkVariant.createBuffer([1, 2, 3]);
+                try {
+                    await createChunk(data);
+                    fail('Should error!');
+                } catch (err) {
+                    expect(err.message).toEqual('Invalid chunk: Too short');
+                }
+            });
+        });
     });
 
 })};

@@ -36,8 +36,10 @@ Alternatively, simply install the library via `npm`:
 
 All classes in the ES5 version are namespaced under `chunkedDc`:
 
-- `chunkedDc.Chunker`
-- `chunkedDc.Unchunker`
+- `chunkedDc.BlobChunker`
+- `chunkedDc.Uint8ArrayChunker`
+- `chunkedDc.BlobUnchunker`
+- `chunkedDc.Uint8ArrayUnchunker`
 
 To build the distributions yourself, simply run `npm install && npm run dist`
 in the main directory.
@@ -45,15 +47,34 @@ in the main directory.
 
 ## Usage
 
+### Variants
+
+The `Blob`-prefixed classes will work with `Blob` instances whereas the
+`Uint8Array`-prefixed classes will work with `Uint8Array` instances (and
+`ArrayBuffer` instances when unchunking).
+
+`Blob` should usually be preferred as it doesn't require copying data as much
+(since it's immutable).
+
 ### Chunking
 
-For each message that you want to split into chunks, pass it to a `Chunker`.
+For each message that you want to split into chunks, pass it to one of the
+`Chunker` classes.
+
+```javascript
+let messageId = 1337;
+let message = new Blob([Uint8Array.of(1, 2, 3, 4, 5, 6, 7, 8)]);
+let chunkSize = 12; // Chunk size *including* 9 byte header
+let chunker = new BlobChunker(messageId, message, chunkSize);
+```
+
+or
 
 ```javascript
 let messageId = 1337;
 let message = Uint8Array.of(1, 2, 3, 4, 5, 6, 7, 8);
 let chunkSize = 12; // Chunk size *including* 9 byte header
-let chunker = new Chunker(messageId, message, chunkSize);
+let chunker = new Uint8ArrayChunker(messageId, message, chunkSize);
 ```
 
 You can then process all chunks using the iterator/iterable protocol:
@@ -79,18 +100,32 @@ The example above will return 3 chunks (header prefix not shown):
 ### Unchunking
 
 This library works both if chunks are sent in ordered or unordered
-manner. Because ordering is not guaranteed, the Unchunker instance
+manner. Because ordering is not guaranteed, the `Unchunker` instance
 accepts chunks and stores them in an internal data structure. As soon as
 all chunks of a message have arrived, a listener will be notified.
 Repeated chunks with the same serial will be ignored.
 
-Create the Unchunker instance:
+Create an instance for one of the `Unchunker` classes:
 
 ```javascript
-let unchunker = new Unchunker();
+let unchunker = new BlobUnchunker();
 ```
 
-Register a message listener:
+or
+
+```javascript
+let unchunker = new Uint8ArrayUnchunker();
+```
+
+Then, register a message listener. For the `BlobUnchunker`:
+
+```javascript
+unchunker.onMessage = (message: Blob, context: any[]) => {
+    // Do something with the received message
+};
+```
+
+or for the `Uint8ArrayUnchunker`:
 
 ```javascript
 unchunker.onMessage = (message: Uint8Array, context: any[]) => {
@@ -101,11 +136,12 @@ unchunker.onMessage = (message: Uint8Array, context: any[]) => {
 Finally, when new chunks arrive, simply add them to the `Unchunker` instance:
 
 ```
-let chunk = ...; // ArrayBuffer
+let chunk = ...; // Blob (for BlobUnchunker),
+                 // Uint8Array or ArrayBuffer (for Uint8ArrayUnchunker)
 unchunker.add(chunk);
 ```
 
-You may also pass some context object to the unchunker which will be
+You may also pass some context object to the `Unchunker` which will be
 stored together with the chunk. When the `onMessage` handler is
 notified, these context objects will be passed in as a list ordered by
 chunk serial.
@@ -145,7 +181,7 @@ Then open `tests.html` in your browser to run the test suite.
 
 ## License
 
-    Copyright (c) 2016 Threema GmbH
+    Copyright (c) 2017 Threema GmbH / SaltyRTC Contributors
     
     Licensed under the Apache License, Version 2.0, <see LICENSE-APACHE file>
     or the MIT license <see LICENSE-MIT file>, at your option. This file may not be

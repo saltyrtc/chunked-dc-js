@@ -3,7 +3,7 @@
  * Binary chunking for WebRTC data channels & more.
  * https://github.com/saltyrtc/chunked-dc-js#readme
  *
- * Copyright (C) 2016 Threema GmbH
+ * Copyright (C) 2017 Threema GmbH
  *
  * Licensed under the Apache License, Version 2.0, <see LICENSE-APACHE file>
  * or the MIT license <see LICENSE-MIT file>, at your option. This file may not be
