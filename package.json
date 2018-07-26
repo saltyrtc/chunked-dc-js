@@ -47,5 +47,15 @@
     "rollup-plugin-uglify": "^4.0.0",
     "tslint": "^5.11.0",
     "typescript": "^2.9.2"
-  }
+  },
+  "files": [
+    "dist",
+    "chunked-dc.d.ts",
+    "README.md",
+    "LICENSE-APACHE",
+    "LICENSE-MIT",
+    "CHANGELOG.md",
+    "package.json",
+    "package-lock.json"
+  ]
 }
