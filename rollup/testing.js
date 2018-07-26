@@ -1,7 +1,6 @@
 import config from './es5.js';
 
-config.entry = 'tests/tests.ts';
-config.dest = 'tests/tests.js';
-config.sourceMap = true;
+config.input = 'tests/tests.ts';
+config.output.file = 'tests/tests.js';
 
 export default config;

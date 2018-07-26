@@ -145,7 +145,7 @@ Then open `tests.html` in your browser to run the test suite.
 
 ## License
 
-    Copyright (c) 2016 Threema GmbH
+    Copyright (c) 2016-2018 Threema GmbH
     
     Licensed under the Apache License, Version 2.0, <see LICENSE-APACHE file>
     or the MIT license <see LICENSE-MIT file>, at your option. This file may not be

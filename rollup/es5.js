@@ -1,19 +1,21 @@
 import config from './es2015.js';
 import babel from 'rollup-plugin-babel';
 
-config.dest = 'dist/chunked-dc.es5.js';
-config.format = 'iife';
-config.moduleName = 'chunkedDc';
-config.useStrict = true;
+config.output.file = 'dist/chunked-dc.es5.js';
+config.output.format = 'iife';
+config.output.name = 'chunkedDc';
+config.output.strict = true;
 config.plugins.push(
     babel({
         babelrc: false,
         exclude: 'node_modules/**',
+        externalHelpers: true,
         presets: [
-            // Use ES2015 but don't transpile modules since Rollup does that
-            ['es2015', {modules: false}]
+            ['@babel/preset-env', {
+                modules: false,
+                forceAllTransforms: true,
+            }]
         ],
-        plugins: ['external-helpers']
     })
 )
 
