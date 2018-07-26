@@ -12,6 +12,10 @@ Possible log types:
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
 
+### v1.1.0 (2018-07-26)
+
+- [added] Expose `HEADER_LENGTH` constant
+
 ### v1.0.0 (2016-12-17)
 
 - No change compared to v0.2.3. But the relase should be stable now.

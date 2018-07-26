@@ -1,9 +1,9 @@
 /**
- * chunked-dc v1.0.0
+ * chunked-dc v1.1.0
  * Binary chunking for WebRTC data channels & more.
  * https://github.com/saltyrtc/chunked-dc-js#readme
  *
- * Copyright (C) 2016 Threema GmbH
+ * Copyright (C) 2016-2018 Threema GmbH
  *
  * Licensed under the Apache License, Version 2.0, <see LICENSE-APACHE file>
  * or the MIT license <see LICENSE-MIT file>, at your option. This file may not be
@@ -18,13 +18,13 @@ class Chunker {
     constructor(id, message, chunkSize) {
         this.chunkId = 0;
         if (chunkSize < (Common.HEADER_LENGTH + 1)) {
-            throw new Error("Chunk size must be at least " + (Common.HEADER_LENGTH + 1));
+            throw new Error('Chunk size must be at least ' + (Common.HEADER_LENGTH + 1));
         }
         if (message.byteLength < 1) {
-            throw new Error("Array may not be empty");
+            throw new Error('Array may not be empty');
         }
-        if (id < 0 || id >= Math.pow(2, 32)) {
-            throw new Error("Message id must be between 0 and 2**32-1");
+        if (id < 0 || id >= (Math.pow(2, 32))) {
+            throw new Error('Message id must be between 0 and 2**32-1');
         }
         this.id = id;
         this.message = message;
@@ -39,7 +39,7 @@ class Chunker {
         if (!this.hasNext) {
             return {
                 done: true,
-                value: null
+                value: null,
             };
         }
         const currentIndex = this.chunkId * this.chunkDataSize;
@@ -58,7 +58,7 @@ class Chunker {
         }
         return {
             done: false,
-            value: new Uint8Array(chunk.buffer)
+            value: new Uint8Array(chunk.buffer),
         };
     }
     nextSerial() {
@@ -76,7 +76,7 @@ class Chunk {
         }
         const reader = new DataView(buf);
         const options = reader.getUint8(0);
-        this._endOfMessage = (options & 0x01) == 1;
+        this._endOfMessage = (options & 0x01) === 1;
         this._id = reader.getUint32(1);
         this._serial = reader.getUint32(5);
         this._data = new Uint8Array(buf.slice(Common.HEADER_LENGTH));
@@ -116,10 +116,10 @@ class ChunkCollector {
         }
     }
     hasSerial(serial) {
-        return this.chunks.find((chunk) => chunk.serial == serial) !== undefined;
+        return this.chunks.find((chunk) => chunk.serial === serial) !== undefined;
     }
     get isComplete() {
-        return this.endArrived && this.chunks.length == this.messageLength;
+        return this.endArrived && this.chunks.length === this.messageLength;
     }
     merge() {
         if (!this.isComplete) {
@@ -137,9 +137,9 @@ class ChunkCollector {
         const capacity = this.chunks[0].data.byteLength * this.messageLength;
         const buf = new Uint8Array(new ArrayBuffer(capacity));
         let offset = 0;
-        let firstSize = this.chunks[0].data.byteLength;
+        const firstSize = this.chunks[0].data.byteLength;
         const contextList = [];
-        for (let chunk of this.chunks) {
+        for (const chunk of this.chunks) {
             if (chunk.data.byteLength > firstSize) {
                 throw new Error('No chunk may be larger than the first chunk of that message.');
             }
@@ -172,7 +172,7 @@ class Unchunker {
         if (this.chunks.has(chunk.id) && this.chunks.get(chunk.id).hasSerial(chunk.serial)) {
             return;
         }
-        if (chunk.isEndOfMessage && chunk.serial == 0) {
+        if (chunk.isEndOfMessage && chunk.serial === 0) {
             this.notifyListener(chunk.data, context === undefined ? [] : [context]);
             this.chunks.delete(chunk.id);
             return;
@@ -199,7 +199,7 @@ class Unchunker {
     }
     gc(maxAge) {
         let removedItems = 0;
-        for (let entry of this.chunks) {
+        for (const entry of this.chunks) {
             const msgId = entry[0];
             const collector = entry[1];
             if (collector.isOlderThan(maxAge)) {
@@ -211,4 +211,7 @@ class Unchunker {
     }
 }
 
-export { Chunker, Unchunker };
+const HEADER_LENGTH = Common.HEADER_LENGTH;
+
+export { HEADER_LENGTH, Chunker, Unchunker };
+//# sourceMappingURL=chunked-dc.es2015.js.map
