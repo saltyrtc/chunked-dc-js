@@ -149,6 +149,18 @@ This library has an extensive test suite. To run it:
 Then open `tests.html` in your browser to run the test suite.
 
 
+## Linting
+
+To run linting checks:
+
+    npm run lint
+
+You can also install a pre-push hook to do the linting:
+
+    echo -e '#!/bin/sh\nnpm run lint' > .git/hooks/pre-push
+    chmod +x .git/hooks/pre-push
+
+
 ## License
 
     Copyright (c) 2016-2018 Threema GmbH

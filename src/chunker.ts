@@ -5,9 +5,9 @@
  * or the MIT license <see LICENSE-MIT file>, at your option. This file may not be
  * copied, modified, or distributed except according to those terms.
  */
-/// <reference path="../chunked-dc.d.ts" />
+/// <reference path='../chunked-dc.d.ts' />
 
-import {Common} from "./common";
+import { Common } from './common';
 
 /**
  * A Chunker instance splits up an Uint8Array into multiple chunks.
@@ -31,13 +31,13 @@ export class Chunker implements chunkedDc.Chunker {
      */
     constructor(id: number, message: Uint8Array, chunkSize: number) {
         if (chunkSize < (Common.HEADER_LENGTH + 1)) {
-            throw new Error("Chunk size must be at least " + (Common.HEADER_LENGTH + 1));
+            throw new Error('Chunk size must be at least ' + (Common.HEADER_LENGTH + 1));
         }
         if (message.byteLength < 1) {
-            throw new Error("Array may not be empty");
+            throw new Error('Array may not be empty');
         }
-        if (id < 0 || id >= 2**32) {
-            throw new Error("Message id must be between 0 and 2**32-1");
+        if (id < 0 || id >= (2 ** 32)) {
+            throw new Error('Message id must be between 0 and 2**32-1');
         }
         this.id = id;
         this.message = message;
@@ -60,7 +60,7 @@ export class Chunker implements chunkedDc.Chunker {
         if (!this.hasNext) {
             return {
                 done: true,
-                value: null
+                value: null,
             };
         }
 
@@ -85,7 +85,7 @@ export class Chunker implements chunkedDc.Chunker {
         }
         return {
             done: false,
-            value: new Uint8Array(chunk.buffer)
+            value: new Uint8Array(chunk.buffer),
         };
     }
 
