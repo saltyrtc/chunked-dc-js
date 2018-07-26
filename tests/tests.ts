@@ -1,4 +1,4 @@
-import "../node_modules/babel-es6-polyfill/browser-polyfill"; // Include ES5 polyfills
+import '../node_modules/@babel/polyfill/dist/polyfill'; // Include ES5 polyfills
 
 import test_chunker from "./test_chunker.spec";
 import test_chunk from "./test_chunk.spec";
