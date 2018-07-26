@@ -120,6 +120,12 @@ To avoid this, simply call the `Unchunker.gc(maxAge: number)` method
 regularly. It will remove all incomplete messages that haven't been
 updated for more than `maxAge` milliseconds.
 
+### Constants
+
+This library exposes the following constants:
+
+- `HEADER_LENGTH`: The number of bytes in the chunk header
+
 
 ## Format
 
