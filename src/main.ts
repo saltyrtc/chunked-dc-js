@@ -5,5 +5,11 @@
  * or the MIT license <see LICENSE-MIT file>, at your option. This file may not be
  * copied, modified, or distributed except according to those terms.
  */
+import { Common } from "./common";
+
+// Export classes
 export { Chunker } from "./chunker";
 export { Unchunker } from "./unchunker";
+
+// Export constants
+export const HEADER_LENGTH = Common.HEADER_LENGTH;
