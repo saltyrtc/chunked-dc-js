@@ -14,6 +14,7 @@
     "dist_es2015": "rollup -c rollup/es2015.js",
     "rollup_tests": "rollup -c rollup/testing.js",
     "validate": "tsc --noEmit",
+    "lint": "tslint -c tslint.json --project tsconfig.json",
     "test": "karma start --single-run --log-level=debug --colors"
   },
   "repository": {
@@ -44,6 +45,7 @@
     "rollup-plugin-babel": "^4.0.0-beta.7",
     "rollup-plugin-typescript": "^0.8.1",
     "rollup-plugin-uglify": "^4.0.0",
+    "tslint": "^5.11.0",
     "typescript": "^2.9.2"
   }
 }

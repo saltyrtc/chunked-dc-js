@@ -6,4 +6,4 @@
  * copied, modified, or distributed except according to those terms.
  */
 import '../node_modules/@babel/polyfill/dist/polyfill'; // Include ES5 polyfills
-export { Chunker, Unchunker } from "./main";
+export { Chunker, Unchunker } from './main';

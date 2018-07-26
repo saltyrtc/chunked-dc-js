@@ -5,9 +5,9 @@
  * or the MIT license <see LICENSE-MIT file>, at your option. This file may not be
  * copied, modified, or distributed except according to those terms.
  */
-/// <reference path="../chunked-dc.d.ts" />
+/// <reference path='../chunked-dc.d.ts' />
 
-import {Common} from "./common";
+import { Common } from './common';
 
 /**
  * Helper class to access chunk information.
@@ -30,7 +30,8 @@ export class Chunk {
         // Read header
         const reader = new DataView(buf);
         const options = reader.getUint8(0);
-        this._endOfMessage = (options & 0x01) == 1;
+        // tslint:disable-next-line:no-bitwise
+        this._endOfMessage = (options & 0x01) === 1;
         this._id = reader.getUint32(1);
         this._serial = reader.getUint32(5);
 
@@ -99,7 +100,7 @@ class ChunkCollector {
      */
     public hasSerial(serial: number): boolean {
         return this.chunks.find(
-            (chunk: Chunk) => chunk.serial == serial
+            (chunk: Chunk) => chunk.serial === serial,
         ) !== undefined;
     }
 
@@ -107,7 +108,7 @@ class ChunkCollector {
      * Return whether the message is complete, meaning that all chunks of the message arrived.
      */
     public get isComplete() {
-        return this.endArrived && this.chunks.length == this.messageLength;
+        return this.endArrived && this.chunks.length === this.messageLength;
     }
 
     /**
@@ -142,9 +143,9 @@ class ChunkCollector {
 
         // Add chunks to buffer
         let offset = 0;
-        let firstSize = this.chunks[0].data.byteLength;
+        const firstSize = this.chunks[0].data.byteLength;
         const contextList = [];
-        for (let chunk of this.chunks) {
+        for (const chunk of this.chunks) {
             if (chunk.data.byteLength > firstSize) {
                 throw new Error('No chunk may be larger than the first chunk of that message.');
             }
@@ -209,7 +210,7 @@ export class Unchunker {
         }
 
         // If this is the only chunk in the message, return it immediately.
-        if (chunk.isEndOfMessage && chunk.serial == 0) {
+        if (chunk.isEndOfMessage && chunk.serial === 0) {
             this.notifyListener(chunk.data, context === undefined ? [] : [context]);
             this.chunks.delete(chunk.id);
             return;
@@ -257,7 +258,7 @@ export class Unchunker {
      */
     public gc(maxAge: number): number {
         let removedItems = 0;
-        for (let entry of this.chunks) {
+        for (const entry of this.chunks) {
             const msgId: number = entry[0];
             const collector: ChunkCollector = entry[1];
             if (collector.isOlderThan(maxAge)) {

@@ -10,6 +10,8 @@ before_script:
   - npm install
   - npm run rollup_tests
 script:
+  # Lints should pass
+  - npm run lint
   # Tests should work
   - npm test
   # Types should be OK
