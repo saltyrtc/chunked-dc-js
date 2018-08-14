@@ -30,14 +30,15 @@ declare namespace chunkedDc {
     }
 
     interface UnchunkerStatic {
-        new(): Unchunker
+        new(): Unchunker;
     }
 
     /** main.ts **/
 
     interface Standalone {
-        Chunker: ChunkerStatic,
-        Unchunker: UnchunkerStatic,
+        Chunker: ChunkerStatic;
+        Unchunker: UnchunkerStatic;
+        HEADER_LENGTH: number;
     }
 
 }
