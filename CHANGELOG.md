@@ -12,6 +12,10 @@ Possible log types:
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
 
+### v1.1.1 (2018-08-14)
+
+- [fixed] Add `HEADER_LENGTH` constant to type declarations
+
 ### v1.1.0 (2018-07-26)
 
 - [added] Expose `HEADER_LENGTH` constant
