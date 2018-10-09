@@ -9,6 +9,7 @@ config.plugins.push(
     babel({
         babelrc: false,
         exclude: 'node_modules/**',
+        extensions: ['.js', '.ts'],
         externalHelpers: true,
         presets: [
             ['@babel/preset-env', {
