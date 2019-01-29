@@ -50,16 +50,16 @@ in the main directory.
 For each message that you want to split into chunks, pass it to a `Chunker`.
 
 ```javascript
-let messageId = 1337;
-let message = Uint8Array.of(1, 2, 3, 4, 5, 6, 7, 8);
-let chunkSize = 12; // Chunk size *including* 9 byte header
-let chunker = new Chunker(messageId, message, chunkSize);
+const messageId = 1337;
+const message = Uint8Array.of(1, 2, 3, 4, 5, 6, 7, 8);
+const chunkSize = 12; // Chunk size *including* 9 byte header
+const chunker = new Chunker(messageId, message, chunkSize);
 ```
 
 You can then process all chunks using the iterator/iterable protocol:
 
 ```javascript
-for (let chunk of chunker) {
+for (const chunk of chunker) {
     // Send chunk to peer
 }
 ```
@@ -68,7 +68,7 @@ Alternatively you can also use the `next()` method directly:
 
 ```javascript
 while (chunker.hasNext) {
-    let chunk = chunker.next().value;
+    const chunk = chunker.next().value;
     // Send chunk to peer
 }
 ```
@@ -93,7 +93,7 @@ let unchunker = new Unchunker();
 Register a message listener:
 
 ```javascript
-unchunker.onMessage = (message: Uint8Array, context: any[]) => {
+unchunker.onMessage = (message: Uint8Array) => {
     // Do something with the received message
 };
 ```

@@ -5,11 +5,8 @@
  * or the MIT license <see LICENSE-MIT file>, at your option. This file may not be
  * copied, modified, or distributed except according to those terms.
  */
-import { Common } from './common';
+export { UNRELIABLE_UNORDERED_HEADER_LENGTH, RELIABLE_ORDERED_HEADER_LENGTH, Mode } from './common';
 
 // Export classes
-export { Chunker } from './chunker';
-export { Unchunker } from './unchunker';
-
-// Export constants
-export const HEADER_LENGTH = Common.HEADER_LENGTH;
+export { ReliableOrderedChunker, UnreliableUnorderedChunker } from './chunker';
+export { ReliableOrderedUnchunker, UnreliableUnorderedUnchunker } from './unchunker';

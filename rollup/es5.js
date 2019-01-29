@@ -18,6 +18,6 @@ config.plugins.push(
             }]
         ],
     })
-)
+);
 
 export default config;

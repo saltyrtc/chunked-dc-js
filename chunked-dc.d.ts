@@ -1,10 +1,10 @@
 // Interfaces
 declare namespace chunkedDc {
-
     /** common.ts **/
 
-    interface CommonStatic {
-        HEADER_LENGTH: number;
+    interface Mode {
+        ReliableOrdered: number;
+        UnreliableUnordered: number;
     }
 
     /** chunker.ts **/
@@ -15,8 +15,16 @@ declare namespace chunkedDc {
         [Symbol.iterator](): IterableIterator<Uint8Array>;
     }
 
-    interface ChunkerStatic {
-        new(id: number, message: Uint8Array, chunkSize: number): Chunker
+    interface ReliableOrderedChunker extends Chunker {}
+
+    interface ReliableOrderedChunkerStatic {
+        new(message: Uint8Array, chunkLength: number, buffer?: ArrayBuffer): ReliableOrderedChunker;
+    }
+
+    interface UnreliableUnorderedChunker extends Chunker {}
+
+    interface UnreliableUnorderedChunkerStatic {
+        new(id: number, message: Uint8Array, chunkLength: number, buffer?: ArrayBuffer): UnreliableUnorderedChunker;
     }
 
     /** unchunker.ts **/
@@ -25,22 +33,34 @@ declare namespace chunkedDc {
 
     interface Unchunker {
         onMessage: MessageListener;
-        add(chunk: ArrayBuffer, context?: any): void;
+        add(chunk: Uint8Array): void;
+    }
+
+    interface ReliableOrderedUnchunker extends Unchunker {}
+
+    interface ReliableOrderedUnchunkerStatic {
+        new(): ReliableOrderedChunker;
+    }
+
+    interface UnreliableUnorderedUnchunker extends Unchunker {
         gc(maxAge: number): number;
     }
 
-    interface UnchunkerStatic {
-        new(): Unchunker;
+    interface UnreliableUnorderedUnchunkerStatic {
+        new(): UnreliableUnorderedUnchunker;
     }
 
     /** main.ts **/
 
     interface Standalone {
-        Chunker: ChunkerStatic;
-        Unchunker: UnchunkerStatic;
-        HEADER_LENGTH: number;
+        Mode: Mode,
+        RELIABLE_ORDERED_HEADER_LENGTH: number;
+        UNRELIABLE_UNORDERED_HEADER_LENGTH: number;
+        ReliableOrderedChunker: ReliableOrderedChunkerStatic;
+        UnreliableUnorderedChunker: UnreliableUnorderedChunkerStatic;
+        ReliableOrderedUnchunker: ReliableOrderedUnchunkerStatic;
+        UnreliableUnorderedUnchunker: UnreliableUnorderedUnchunkerStatic;
     }
-
 }
 
 // Entry point
