@@ -149,6 +149,18 @@ This library has an extensive test suite. To run it:
 Then open `tests.html` in your browser to run the test suite.
 
 
+## Performance
+
+You can run the performance test suite to retrieve results for your local
+browser:
+
+    npm install
+    npm run rollup_tests
+
+Then open `performance.html?random=false` in your browser to run the
+performance tests.
+
+
 ## Linting
 
 To run linting checks:
