@@ -12,7 +12,7 @@
     "dist_es5_min": "rollup -c rollup/es5.min.js",
     "dist_es5_min_polyfill": "rollup -c rollup/es5.min.polyfill.js",
     "dist_es2015": "rollup -c rollup/es2015.js",
-    "rollup_tests": "rollup -c rollup/testing.js",
+    "rollup_tests": "rollup -c rollup/testing.js && rollup -c rollup/performance.js",
     "validate": "tsc --noEmit",
     "lint": "tslint -c tslint.json --project tsconfig.json",
     "test": "karma start --single-run --log-level=debug --colors"
@@ -37,6 +37,8 @@
     "@babel/core": "^7.1",
     "@babel/polyfill": "^7.0",
     "@babel/preset-env": "^7.1",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-node-resolve": "^4.0.0",
     "jasmine-core": "^3.2.1",
     "karma": "^3.0",
     "karma-firefox-launcher": "^1.1.0",
@@ -45,6 +47,7 @@
     "rollup-plugin-babel": "^4.0",
     "rollup-plugin-typescript": "^1.0",
     "rollup-plugin-uglify": "^6.0",
+    "knuth-shuffle-seeded": "^1.0.6",
     "tslint": "^5.11.0",
     "typescript": "^3.1"
   },
