@@ -1,6 +1,6 @@
 # Binary Chunking for WebRTC DataChannels
 
-[![Travis branch](https://img.shields.io/travis/saltyrtc/chunked-dc-js/master.svg)](https://travis-ci.org/saltyrtc/chunked-dc-js)
+[![CircleCI](https://circleci.com/gh/saltyrtc/chunked-dc-js/tree/master.svg?style=shield)](https://circleci.com/gh/saltyrtc/chunked-dc-js/tree/master)
 [![Supported ES Standard](https://img.shields.io/badge/javascript-ES5%20%2F%20ES2015-yellow.svg)](https://github.com/saltyrtc/chunked-dc-js)
 [![npm Version](https://img.shields.io/npm/v/@saltyrtc/chunked-dc.svg?maxAge=86400)](https://www.npmjs.com/package/@saltyrtc/chunked-dc)
 [![npm Downloads](https://img.shields.io/npm/dt/@saltyrtc/chunked-dc.svg?maxAge=86400)](https://www.npmjs.com/package/@saltyrtc/chunked-dc)
