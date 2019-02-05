@@ -46,7 +46,7 @@ export class Chunk {
                 this.serial = chunkView.getUint32(5);
                 break;
         }
-        this.endOfMessage = (options & 1) === 1; // tslint:disable-line:no-bitwise;
+        this.endOfMessage = (options & 1) === 1; // tslint:disable-line:no-bitwise
 
         // Store payload
         this.payload = chunkArray.subarray(headerLength);
@@ -368,7 +368,6 @@ export class ReliableOrderedUnchunker extends AbstractUnchunker implements chunk
         }
     }
 }
-
 
 /**
  * A reassembler optimised for unreliable & unordered mode.

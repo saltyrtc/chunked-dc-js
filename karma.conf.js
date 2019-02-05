@@ -4,9 +4,8 @@ module.exports = function(config) {
         files: [
             'chunked-dc.js',
             'tests/tests.js',
-            'tests/performance.js',
         ],
         browsers: ['Firefox'],
-        browserDisconnectTimeout: 10000,
+        browserDisconnectTimeout: 3000,
     });
 };

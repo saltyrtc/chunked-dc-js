@@ -91,7 +91,7 @@ abstract class AbstractChunker implements chunkedDc.Chunker {
         const chunkView = new DataView(chunkBuffer);
         let options: number = this.mode;
         if (endOffset === this.message.byteLength) {
-            options |= 1;
+            options |= 1; // tslint:disable-line:no-bitwise
         }
         chunkView.setUint8(0, options);
         switch (this.mode) {
