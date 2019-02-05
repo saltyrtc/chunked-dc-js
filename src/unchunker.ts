@@ -57,60 +57,109 @@ export class Chunk {
  * Copies chunks into a contiguous buffer.
  */
 class ContiguousBufferReassembler {
-    private buffer: Uint8Array | null = null;
-    private offset: number = 0;
-    private remaining: number = 0;
+    private buffer: ArrayBuffer | null;
+    private array: Uint8Array | null;
+    private offset: number;
+    private remaining: number;
+
+    /**
+     * Create a reassembler for reliable & ordered mode.
+     *
+     * @param buffer A message buffer to be used for handing out messages.
+     *   If the message grows larger than the underlying buffer, it will be
+     *   replaced. A new buffer will be created when needed if not supplied.
+     */
+    public constructor(buffer: ArrayBuffer | null = null) {
+        this.buffer = buffer;
+        if (this.buffer !== null) {
+            this.array = new Uint8Array(this.buffer);
+            this.offset = 0;
+            this.remaining = this.buffer.byteLength;
+        } else {
+            this.array = null;
+            this.offset = 0;
+            this.remaining = 0;
+        }
+    }
 
     public get empty(): boolean {
-        return this.buffer === null;
+        return this.offset === 0;
     }
 
     /**
-     * Append a chunk in the internal buffer.
+     * Append a chunk to the internal buffer.
      *
      * @param chunk The chunk to be appended.
      */
     public add(chunk: Chunk): void {
         const chunkLength = chunk.payload.byteLength;
-        this.prepareFor(chunkLength);
-        this.buffer.set(chunk.payload, this.offset);
+        this.maybeResize(chunkLength);
+        this.array.set(chunk.payload, this.offset);
         this.offset += chunkLength;
         this.remaining -= chunkLength;
     }
 
     /**
-     * Prepare the internal buffer so a new chunk can be safely added.
+     * Append a batch of chunks to the internal buffer.
+     *
+     * @param chunks The chunks to be appended.
+     * @param totalByteLength The accumulated byte length of the chunks.
+     * @return the last chunk that has been added.
+     */
+    public addBatched(chunks: Chunk[], totalByteLength: number): Chunk {
+        this.maybeResize(totalByteLength);
+        let chunk: Chunk;
+        for (chunk of chunks) {
+            this.array.set(chunk.payload, this.offset);
+            this.offset += chunk.payload.byteLength;
+        }
+        this.remaining -= totalByteLength;
+        return chunk;
+    }
+
+    /**
+     * Prepare the internal buffer so one or more new chunks can be safely
+     * added.
      *
      * Note: We apply a heuristic here to double the buffer's size, so we don't
      *       need to create new buffers and copy every time. This should be
      *       faster than merging at the end since we can expect that the local
      *       machine copies memory faster than it will receive new chunks.
      *
-     * @param chunkLength The chunk's byte length.
+     * @param requiredLength The required byte length.
      */
-    private prepareFor(chunkLength: number): void {
+    private maybeResize(requiredLength: number): void {
+        // We have no underlying buffer - allocate it directly for the required size
         if (this.buffer === null) {
-            this.buffer = new Uint8Array(chunkLength);
-        } else if (this.remaining < chunkLength) {
-            const previousBuffer = this.buffer;
-            const length = Math.max(previousBuffer.byteLength * 2, previousBuffer.byteLength + chunkLength);
-            this.buffer = new Uint8Array(length);
-            this.buffer.set(previousBuffer);
-            this.offset = previousBuffer.byteLength;
+            this.buffer = new ArrayBuffer(requiredLength);
+            this.array = new Uint8Array(this.buffer);
+            return;
+        }
+
+        // Reallocate the underlying buffer if needed
+        if (this.remaining < requiredLength) {
+            const previousArray = this.array;
+            const length = Math.max(previousArray.byteLength * 2, previousArray.byteLength + requiredLength);
+            this.buffer = new ArrayBuffer(length);
+            this.array = new Uint8Array(this.buffer);
+            this.array.set(previousArray);
+            this.offset = previousArray.byteLength;
             this.remaining = length - this.offset;
         }
     }
 
     /**
-     * Extract the complete message from the internal buffer.
+     * Extract the complete message from the internal buffer as a view.
+     *
+     * Important: The returned message's underlying buffer will be reused with
+     *            the next chunk being reassembled.
      *
      * @return The completed message.
      */
     public getMessage(): Uint8Array {
-        const message = this.buffer.subarray(0, this.offset);
-        this.buffer = null;
+        const message = this.array.subarray(0, this.offset);
         this.offset = 0;
-        this.remaining = 0;
+        this.remaining = this.buffer.byteLength;
         return message;
     }
 }
@@ -121,6 +170,7 @@ class ContiguousBufferReassembler {
 class UnreliableUnorderedReassembler {
     private readonly contiguousChunks: ContiguousBufferReassembler = new ContiguousBufferReassembler();
     private queuedChunks: Chunk[] | null = null;
+    private queuedChunksTotalByteLength: number = 0;
     private _chunkCount: number = 0;
     private nextOrderedSerial: number = 0;
     private lastUpdate: number = new Date().getTime();
@@ -176,6 +226,7 @@ class UnreliableUnorderedReassembler {
      */
     private queueUnorderedChunk(chunk: Chunk): boolean {
         // Append chunk
+        this.queuedChunksTotalByteLength += chunk.payload.byteLength;
         if (this.queuedChunks === null) {
             this.queuedChunks = [chunk];
             return false;
@@ -215,10 +266,7 @@ class UnreliableUnorderedReassembler {
      * no gap between the contiguous chunk buffer and our queued chunks.
      */
     private moveQueuedChunks(): void {
-        let chunk: Chunk;
-        for (chunk of this.queuedChunks) {
-            this.contiguousChunks.add(chunk);
-        }
+        const chunk = this.contiguousChunks.addBatched(this.queuedChunks, this.queuedChunksTotalByteLength);
         // Note: `chunk` is the last chunk in the sequence and has the highest serial number
         this.nextOrderedSerial = chunk.serial + 1;
         this.queuedChunks = null;
@@ -248,6 +296,9 @@ class UnreliableUnorderedReassembler {
 abstract class AbstractUnchunker implements chunkedDc.Unchunker {
     /**
      * Message listener. Set by the user.
+     *
+     * Important: The passed message's underlying buffer will be reused with
+     *            the next chunk being reassembled.
      */
     public onMessage: (message: Uint8Array) => void = null;
 
@@ -275,7 +326,19 @@ abstract class AbstractUnchunker implements chunkedDc.Unchunker {
  * An unchunker for reliable & ordered mode.
  */
 export class ReliableOrderedUnchunker extends AbstractUnchunker implements chunkedDc.ReliableOrderedUnchunker {
-    private readonly reassembler: ContiguousBufferReassembler = new ContiguousBufferReassembler();
+    private readonly reassembler: ContiguousBufferReassembler;
+
+    /**
+     * Create an unchunker for reliable & ordered mode.
+     *
+     * @param buffer A message buffer to be used for handing out messages.
+     *   If the message grows larger than the underlying buffer, it will be
+     *   replaced. A new buffer will be created when needed if not supplied.
+     */
+    public constructor(buffer?: ArrayBuffer) {
+        super();
+        this.reassembler = new ContiguousBufferReassembler(buffer);
+    }
 
     /**
      * Add a chunk.

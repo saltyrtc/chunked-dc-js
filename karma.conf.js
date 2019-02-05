@@ -3,8 +3,10 @@ module.exports = function(config) {
         frameworks: ['jasmine'],
         files: [
             'chunked-dc.js',
-            'tests/tests.js'
+            'tests/tests.js',
+            'tests/performance.js',
         ],
-        browsers: ['Firefox']
+        browsers: ['Firefox'],
+        browserDisconnectTimeout: 10000,
     });
 };

@@ -63,8 +63,9 @@ abstract class AbstractChunker implements chunkedDc.Chunker {
     /**
      * Iterator implementation. Value is the next Uint8Array chunk.
      *
-     * Important: When the chunker has been created with `reuseBuffer` set to `true`, the underlying buffer of the
-     *            chunk will be reused in the next iteration.
+     * Important: When the chunker has been created with an `ArrayBuffer`,
+     *            the underlying buffer of the chunk will be reused in the next
+     *            iteration.
      */
     public next(): IteratorResult<Uint8Array> {
         if (!this.hasNext) {
