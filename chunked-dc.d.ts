@@ -39,7 +39,7 @@ declare namespace chunkedDc {
     interface ReliableOrderedUnchunker extends Unchunker {}
 
     interface ReliableOrderedUnchunkerStatic {
-        new(): ReliableOrderedChunker;
+        new(buffer?: ArrayBuffer): ReliableOrderedChunker;
     }
 
     interface UnreliableUnorderedUnchunker extends Unchunker {
