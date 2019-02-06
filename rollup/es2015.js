@@ -19,7 +19,7 @@ export default {
                 " * " + p.description + "\n" +
                 " * " + p.homepage + "\n" +
                 " *\n" +
-                " * Copyright (C) 2016-2018 " + p.author + "\n" +
+                " * Copyright (C) 2016-2019 " + p.author + "\n" +
                 " *\n" +
                 " * Licensed under the Apache License, Version 2.0, <see LICENSE-APACHE file>\n" +
                 " * or the MIT license <see LICENSE-MIT file>, at your option. This file may not be\n" +
