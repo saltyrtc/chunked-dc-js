@@ -78,7 +78,7 @@ abstract class AbstractChunker implements chunkedDc.Chunker {
         // Allocate chunk buffer (if required)
         const remaining = this.message.byteLength - this.offset;
         const payloadLength = remaining < this.payloadLength ? remaining : this.payloadLength;
-        const chunkLength = payloadLength + this.headerLength;
+        const chunkLength = this.headerLength + payloadLength;
         const endOffset = this.offset + payloadLength;
         let chunkBuffer: ArrayBuffer;
         if (this.buffer !== null) {
@@ -105,7 +105,7 @@ abstract class AbstractChunker implements chunkedDc.Chunker {
 
         // Set payload
         const payloadSlice = this.message.subarray(this.offset, endOffset);
-        const chunkArray = new Uint8Array(chunkBuffer);
+        const chunkArray = new Uint8Array(chunkBuffer, 0, chunkLength);
         chunkArray.set(payloadSlice, this.headerLength);
         this.offset = endOffset;
         return {
