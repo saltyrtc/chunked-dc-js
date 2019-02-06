@@ -143,7 +143,6 @@ class ContiguousBufferReassembler {
             this.buffer = new ArrayBuffer(length);
             this.array = new Uint8Array(this.buffer);
             this.array.set(previousArray);
-            this.offset = previousArray.byteLength;
             this.remaining = length - this.offset;
         }
     }
