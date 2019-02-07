@@ -107,7 +107,7 @@ const unchunker = new ReliableOrderedUnchunker(buffer);
 ```
 
 The `buffer` is optional. If supplied, it will be continuously used for
-reassembling messages. If the message grows larger than `buffer`, it will be
+reassembling messages. If the message grows larger than `buffer`, the buffer will be
 replaced. Supplying a `buffer` allows for slightly improved performance.
 Regardless of whether or not it is being used, each message retrieved needs to
 be processed or copied immediately before a next chunk can be added to the
