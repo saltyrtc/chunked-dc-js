@@ -135,6 +135,12 @@ export default () => {
                     const add = () => unchunker.add(Uint8Array.of(0));
                     expect(add).toThrowError('Invalid chunk: Unexpected mode 0');
                 });
+
+                it('does not accept reserved mode', () => {
+                    const unchunker = new ReliableOrderedUnchunker();
+                    const add = () => unchunker.add(Uint8Array.of(2));
+                    expect(add).toThrowError('Invalid chunk: Unexpected mode 2');
+                });
             });
 
             describe(`integration (buffer=${hasBufferStr})`, () => {
@@ -310,6 +316,12 @@ export default () => {
                 const unchunker = new UnreliableUnorderedUnchunker();
                 const add = () => unchunker.add(Uint8Array.of(6, 0, 0, 0, 0, 1, 1, 1, 1));
                 expect(add).toThrowError('Invalid chunk: Unexpected mode 6');
+            });
+
+            it('does not accept reserved mode', () => {
+                const unchunker = new ReliableOrderedUnchunker();
+                const add = () => unchunker.add(Uint8Array.of(2));
+                expect(add).toThrowError('Invalid chunk: Unexpected mode 2');
             });
         });
 
