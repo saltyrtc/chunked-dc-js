@@ -13,7 +13,7 @@ export const UNRELIABLE_UNORDERED_HEADER_LENGTH = 9;
  * The mode being used when chunking/unchunking.
  */
 export const MODE_BITMASK = 6;
-export enum Mode {
+export const enum Mode {
     // Important: Changes to the values must correspond to the options field!
 
     // R R R R R 1 1 E
