@@ -1,6 +1,6 @@
 /// <reference path="jasmine.d.ts" />
 
-import { MODE_BITFIELD } from '../src/common';
+import { MODE_BITMASK } from '../src/common';
 import { RELIABLE_ORDERED_HEADER_LENGTH, UNRELIABLE_UNORDERED_HEADER_LENGTH, Mode } from '../src/main';
 
 export default () => { describe('Common', function() {
@@ -18,7 +18,7 @@ export default () => { describe('Common', function() {
     });
 
     it('modes are detected as defined by the spec', () => {
-        expect(255 & MODE_BITFIELD).toEqual(Mode.ReliableOrdered);
-        expect(249 & MODE_BITFIELD).toEqual(Mode.UnreliableUnordered);
+        expect(255 & MODE_BITMASK).toEqual(Mode.ReliableOrdered);
+        expect(249 & MODE_BITMASK).toEqual(Mode.UnreliableUnordered);
     });
 })};

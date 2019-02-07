@@ -7,7 +7,7 @@
  */
 /// <reference path='../chunked-dc.d.ts' />
 
-import { Mode, MODE_BITFIELD, RELIABLE_ORDERED_HEADER_LENGTH, UNRELIABLE_UNORDERED_HEADER_LENGTH } from './common';
+import { Mode, MODE_BITMASK, RELIABLE_ORDERED_HEADER_LENGTH, UNRELIABLE_UNORDERED_HEADER_LENGTH } from './common';
 
 /**
  * Helper class to store chunk information.
@@ -19,9 +19,9 @@ export class Chunk {
     public readonly payload: Uint8Array;
 
     /**
-     * Parse the chunk's buffer.
+     * Parse the chunk.
      *
-     * @param chunkArray The chunk's buffer which will be **referenced**.
+     * @param chunkArray The chunk's array which will be **referenced**.
      * @param expectedMode The mode we expect the chunk to use.
      * @param headerLength The expected header length.
      * @throws Error if message is smaller than the header length or an unexpected mode has been detected.
@@ -34,7 +34,7 @@ export class Chunk {
         // Read header
         const chunkView = new DataView(chunkArray.buffer, chunkArray.byteOffset, chunkArray.byteLength);
         const options = chunkView.getUint8(0);
-        const actualMode = (options & MODE_BITFIELD); // tslint:disable-line:no-bitwise
+        const actualMode = (options & MODE_BITMASK); // tslint:disable-line:no-bitwise
         if (actualMode !== expectedMode) {
             throw new Error(`Invalid chunk: Unexpected mode ${actualMode}`);
         }
