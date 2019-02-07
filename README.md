@@ -107,11 +107,11 @@ const unchunker = new ReliableOrderedUnchunker(buffer);
 ```
 
 The `buffer` is optional. If supplied, it will be continuously used for
-reassembling messages. If the message grows larger than `buffer`, the buffer will be
-replaced. Supplying a `buffer` allows for slightly improved performance.
-Regardless of whether or not it is being used, each message retrieved needs to
-be processed or copied immediately before a next chunk can be added to the
-unchunker.
+reassembling messages. If the message grows larger than `buffer`, the buffer
+will be replaced. Supplying a `buffer` allows for slightly improved
+performance. Regardless of whether or not it is being used, each message
+retrieved needs to be processed or copied immediately before a next chunk can
+be added to the unchunker.
 
 Register a message listener:
 
@@ -127,6 +127,9 @@ Finally, when new chunks arrive, add them to the unchunker instance:
 let chunk = ...; // Uint8Array
 unchunker.add(chunk);
 ```
+
+Note that this unchunker will reject chunks with modes other than
+reliable/ordered. 
 
 ### Unreliable/Unordered
 
@@ -165,6 +168,9 @@ let unchunker = new UnreliableUnorderedUnchunker();
 
 Registering a message listener and adding chunks is identical to the
 [reliable/ordered](#reliableordered) mode.
+
+Note that this unchunker will reject chunks with modes other than
+unreliable/unordered.
 
 #### Cleanup
 
