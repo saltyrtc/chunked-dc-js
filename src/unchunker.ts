@@ -57,6 +57,7 @@ export class Chunk {
  * Copies chunks into a contiguous buffer.
  */
 class ContiguousBufferReassembler {
+    private complete: boolean = false;
     private buffer: ArrayBuffer | null;
     private array: Uint8Array | null;
     private offset: number;
@@ -82,6 +83,9 @@ class ContiguousBufferReassembler {
         }
     }
 
+    /**
+     * Return `true` in case nothing has been written to the reassembler, yet.
+     */
     public get empty(): boolean {
         return this.offset === 0;
     }
@@ -89,11 +93,19 @@ class ContiguousBufferReassembler {
     /**
      * Append a chunk to the internal buffer.
      *
+     * Important: Do not mix chunks with different ids in the same reassembler
+     *            instance or it will break!
+     *
      * @param chunk The chunk to be appended.
+     * @throws Error if the message is already complete.
      */
     public add(chunk: Chunk): void {
+        if (this.complete) {
+            throw new Error('Message already complete');
+        }
         const chunkLength = chunk.payload.byteLength;
         this.maybeResize(chunkLength);
+        this.complete = chunk.endOfMessage;
         this.array.set(chunk.payload, this.offset);
         this.offset += chunkLength;
         this.remaining -= chunkLength;
@@ -102,14 +114,22 @@ class ContiguousBufferReassembler {
     /**
      * Append a batch of chunks to the internal buffer.
      *
+     * Important: Do not mix chunks with different ids in the same reassembler
+     *            instance or it will break!
+     *
      * @param chunks The chunks to be appended.
      * @param totalByteLength The accumulated byte length of the chunks.
      * @return the last chunk that has been added.
+     * @throws Error if the message is already complete.
      */
     public addBatched(chunks: Chunk[], totalByteLength: number): Chunk {
         this.maybeResize(totalByteLength);
         let chunk: Chunk;
         for (chunk of chunks) {
+            if (this.complete) {
+                throw new Error('Message already complete');
+            }
+            this.complete = chunk.endOfMessage;
             this.array.set(chunk.payload, this.offset);
             this.offset += chunk.payload.byteLength;
         }
@@ -154,9 +174,14 @@ class ContiguousBufferReassembler {
      *            the next chunk being reassembled.
      *
      * @return The completed message.
+     * @throws Error if the message is not yet complete.
      */
     public getMessage(): Uint8Array {
+        if (!this.complete) {
+            throw new Error('Message not complete');
+        }
         const message = this.array.subarray(0, this.offset);
+        this.complete = false;
         this.offset = 0;
         this.remaining = this.buffer.byteLength;
         return message;
@@ -191,8 +216,18 @@ class UnreliableUnorderedReassembler {
 
     /**
      * Add a new chunk.
+     *
+     * Important: Do not mix chunks with different ids in the same reassembler
+     *            instance or it will break!
+     *
+     * @throws Error if the message is already complete.
      */
     public add(chunk: Chunk): void {
+        // Already complete?
+        if (this.complete) {
+            throw new Error('Message already complete');
+        }
+
         if (this.queuedChunks === null && chunk.serial === this._chunkCount) {
             // In order: Can be added to the contiguous chunks
             this.contiguousChunks.add(chunk);
@@ -275,8 +310,12 @@ class UnreliableUnorderedReassembler {
      * Get the reassembled message.
      *
      * @return The completed message.
+     * @throws Error if the message is not yet complete.
      */
     public getMessage(): Uint8Array {
+        if (!this.complete) {
+            throw new Error('Message not complete');
+        }
         return this.contiguousChunks.getMessage();
     }
 
