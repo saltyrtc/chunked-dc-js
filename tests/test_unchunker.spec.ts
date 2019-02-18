@@ -319,8 +319,8 @@ export default () => {
             });
 
             it('does not accept reserved mode', () => {
-                const unchunker = new ReliableOrderedUnchunker();
-                const add = () => unchunker.add(Uint8Array.of(2));
+                const unchunker = new UnreliableUnorderedUnchunker();
+                const add = () => unchunker.add(Uint8Array.of(2, 0, 0, 0, 0, 1, 1, 1, 1));
                 expect(add).toThrowError('Invalid chunk: Unexpected mode 2');
             });
         });
