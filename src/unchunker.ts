@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016-2018 Threema GmbH / SaltyRTC Contributors
+ * Copyright (C) 2016-2019 Threema GmbH / SaltyRTC Contributors
  *
  * Licensed under the Apache License, Version 2.0, <see LICENSE-APACHE file>
  * or the MIT license <see LICENSE-MIT file>, at your option. This file may not be
@@ -7,241 +7,443 @@
  */
 /// <reference path='../chunked-dc.d.ts' />
 
-import { Common } from './common';
+import { Mode, MODE_BITMASK, RELIABLE_ORDERED_HEADER_LENGTH, UNRELIABLE_UNORDERED_HEADER_LENGTH } from './common';
 
 /**
- * Helper class to access chunk information.
+ * Helper class to store chunk information.
  */
 export class Chunk {
-    private _endOfMessage: boolean;
-    private _id: number;
-    private _serial: number;
-    private _data: Uint8Array;
-    private _context: any;
+    public readonly endOfMessage: boolean;
+    public readonly id: number;
+    public readonly serial: number;
+    public readonly payload: Uint8Array;
 
     /**
-     * Parse the ArrayBuffer.
+     * Parse the chunk.
+     *
+     * @param chunkArray The chunk's array which will be **referenced**.
+     * @param expectedMode The mode we expect the chunk to use.
+     * @param headerLength The expected header length.
+     * @throws Error if message is smaller than the header length or an unexpected mode has been detected.
      */
-    constructor(buf: ArrayBuffer, context?: any) {
-        if (buf.byteLength < Common.HEADER_LENGTH) {
+    public constructor(chunkArray: Uint8Array, expectedMode: Mode, headerLength: number) {
+        if (chunkArray.byteLength < headerLength) {
             throw new Error('Invalid chunk: Too short');
         }
 
         // Read header
-        const reader = new DataView(buf);
-        const options = reader.getUint8(0);
-        // tslint:disable-next-line:no-bitwise
-        this._endOfMessage = (options & 0x01) === 1;
-        this._id = reader.getUint32(1);
-        this._serial = reader.getUint32(5);
+        const chunkView = new DataView(chunkArray.buffer, chunkArray.byteOffset, chunkArray.byteLength);
+        const options = chunkView.getUint8(0);
+        const actualMode = (options & MODE_BITMASK); // tslint:disable-line:no-bitwise
+        if (actualMode !== expectedMode) {
+            throw new Error(`Invalid chunk: Unexpected mode ${actualMode}`);
+        }
+        switch (expectedMode) {
+            case Mode.ReliableOrdered:
+                break;
+            case Mode.UnreliableUnordered:
+                this.id = chunkView.getUint32(1);
+                this.serial = chunkView.getUint32(5);
+                break;
+        }
+        this.endOfMessage = (options & 1) === 1; // tslint:disable-line:no-bitwise
 
-        // Read data
-        // Note: We copy the data bytes instead of getting a reference to a subset of the buffer.
-        // This is less ideal for performance, but avoids bugs that can occur
-        // by 3rd party modification of the ArrayBuffer.
-        this._data = new Uint8Array(buf.slice(Common.HEADER_LENGTH));
-
-        // Store context
-        this._context = context;
-    }
-
-    public get isEndOfMessage(): boolean {
-        return this._endOfMessage;
-    }
-
-    public get id(): number {
-        return this._id;
-    }
-
-    public get serial(): number {
-        return this._serial;
-    }
-
-    public get data(): Uint8Array {
-        return this._data;
-    }
-
-    public get context(): any {
-        return this._context;
+        // Store payload
+        this.payload = chunkArray.subarray(headerLength);
     }
 }
 
 /**
- * Helper class to hold chunks and an "end-arrived" flag.
+ * Copies chunks into a contiguous buffer.
  */
-class ChunkCollector {
-    private endArrived: boolean;
-    private messageLength: number = null;
-    private chunks: Chunk[] = [];
-    private lastUpdate: number = new Date().getTime();
+class ContiguousBufferReassembler {
+    private complete: boolean = false;
+    private buffer: ArrayBuffer | null;
+    private array: Uint8Array | null;
+    private offset: number;
+    private remaining: number;
 
     /**
-     * Register a new chunk. Return a boolean indicating whether the chunk was added.
+     * Create a reassembler for reliable & ordered mode.
+     *
+     * @param buffer A message buffer to be used for handing out messages.
+     *   If the message grows larger than the underlying buffer, it will be
+     *   replaced. A new buffer will be created when needed if not supplied.
      */
-    public addChunk(chunk: Chunk): void {
-        // Ignore repeated chunks with the same serial
-        if (this.hasSerial(chunk.serial)) {
-            return;
-        }
-
-        // Add chunk
-        this.chunks.push(chunk);
-
-        // Process chunk
-        this.lastUpdate = new Date().getTime();
-        if (chunk.isEndOfMessage) {
-            this.endArrived = true;
-            this.messageLength = chunk.serial + 1;
+    public constructor(buffer: ArrayBuffer | null = null) {
+        this.buffer = buffer;
+        if (this.buffer !== null) {
+            this.array = new Uint8Array(this.buffer);
+            this.offset = 0;
+            this.remaining = this.buffer.byteLength;
+        } else {
+            this.array = null;
+            this.offset = 0;
+            this.remaining = 0;
         }
     }
 
     /**
-     * Return whether this chunk collector already contains a chunk with the specified serial.
+     * Return `true` in case nothing has been written to the reassembler, yet.
      */
-    public hasSerial(serial: number): boolean {
-        return this.chunks.find(
-            (chunk: Chunk) => chunk.serial === serial,
-        ) !== undefined;
+    public get empty(): boolean {
+        return this.offset === 0;
+    }
+
+    /**
+     * Append a chunk to the internal buffer.
+     *
+     * Important: Do not mix chunks with different ids in the same reassembler
+     *            instance or it will break!
+     *
+     * @param chunk The chunk to be appended.
+     * @throws Error if the message is already complete.
+     */
+    public add(chunk: Chunk): void {
+        if (this.complete) {
+            throw new Error('Message already complete');
+        }
+        const chunkLength = chunk.payload.byteLength;
+        this.maybeResize(chunkLength);
+        this.complete = chunk.endOfMessage;
+        this.array.set(chunk.payload, this.offset);
+        this.offset += chunkLength;
+        this.remaining -= chunkLength;
+    }
+
+    /**
+     * Append a batch of chunks to the internal buffer.
+     *
+     * Important: Do not mix chunks with different ids in the same reassembler
+     *            instance or it will break!
+     *
+     * @param chunks The chunks to be appended.
+     * @param totalByteLength The accumulated byte length of the chunks.
+     * @return the last chunk that has been added.
+     * @throws Error if the message is already complete.
+     */
+    public addBatched(chunks: Chunk[], totalByteLength: number): Chunk {
+        this.maybeResize(totalByteLength);
+        let chunk: Chunk;
+        for (chunk of chunks) {
+            if (this.complete) {
+                throw new Error('Message already complete');
+            }
+            this.complete = chunk.endOfMessage;
+            this.array.set(chunk.payload, this.offset);
+            this.offset += chunk.payload.byteLength;
+        }
+        this.remaining -= totalByteLength;
+        return chunk;
+    }
+
+    /**
+     * Prepare the internal buffer so one or more new chunks can be safely
+     * added.
+     *
+     * Note: We apply a heuristic here to double the buffer's size, so we don't
+     *       need to create new buffers and copy every time. This should be
+     *       faster than merging at the end since we can expect that the local
+     *       machine copies memory faster than it will receive new chunks.
+     *
+     * @param requiredLength The required byte length.
+     */
+    private maybeResize(requiredLength: number): void {
+        // We have no underlying buffer - allocate it directly for the required size
+        if (this.buffer === null) {
+            this.buffer = new ArrayBuffer(requiredLength);
+            this.array = new Uint8Array(this.buffer);
+            return;
+        }
+
+        // Reallocate the underlying buffer if needed
+        if (this.remaining < requiredLength) {
+            const previousArray = this.array;
+            const length = Math.max(previousArray.byteLength * 2, previousArray.byteLength + requiredLength);
+            this.buffer = new ArrayBuffer(length);
+            this.array = new Uint8Array(this.buffer);
+            this.array.set(previousArray);
+            this.remaining = length - this.offset;
+        }
+    }
+
+    /**
+     * Extract the complete message from the internal buffer as a view.
+     *
+     * Important: The returned message's underlying buffer will be reused with
+     *            the next chunk being reassembled.
+     *
+     * @return The completed message.
+     * @throws Error if the message is not yet complete.
+     */
+    public getMessage(): Uint8Array {
+        if (!this.complete) {
+            throw new Error('Message not complete');
+        }
+        const message = this.array.subarray(0, this.offset);
+        this.complete = false;
+        this.offset = 0;
+        this.remaining = this.buffer.byteLength;
+        return message;
+    }
+}
+
+/**
+ * Reorders chunks and then copies them into a contiguous buffer.
+ */
+class UnreliableUnorderedReassembler {
+    private readonly contiguousChunks: ContiguousBufferReassembler = new ContiguousBufferReassembler();
+    private queuedChunks: Chunk[] | null = null;
+    private queuedChunksTotalByteLength: number = 0;
+    private _chunkCount: number = 0;
+    private nextOrderedSerial: number = 0;
+    private lastUpdate: number = new Date().getTime();
+    private requiredChunkCount: number | null = null;
+
+    /**
+     * Return the number of added chunks.
+     */
+    public get chunkCount(): number {
+        return this._chunkCount;
     }
 
     /**
      * Return whether the message is complete, meaning that all chunks of the message arrived.
      */
-    public get isComplete() {
-        return this.endArrived && this.chunks.length === this.messageLength;
+    public get complete() {
+        return this.requiredChunkCount !== null && this._chunkCount === this.requiredChunkCount;
     }
 
     /**
-     * Merge the messages.
+     * Add a new chunk.
      *
-     * Note: This implementation assumes that no chunk will be larger than the first one!
-     * If this is not the case, an error may be thrown.
+     * Important: Do not mix chunks with different ids in the same reassembler
+     *            instance or it will break!
      *
-     * @return An object containing the message as an `Uint8Array`
-     *         and a (possibly empty) list of context objects.
-     * @throws Error if message is not yet complete.
+     * @throws Error if the message is already complete.
      */
-    public merge(): {message: Uint8Array, context: any[]} {
-        // Preconditions
-        if (!this.isComplete) {
-            throw new Error('Not all chunks for this message have arrived yet.');
+    public add(chunk: Chunk): void {
+        // Already complete?
+        if (this.complete) {
+            throw new Error('Message already complete');
         }
 
-        // Sort chunks
-        this.chunks.sort((a: Chunk, b: Chunk) => {
+        if (this.queuedChunks === null && chunk.serial === this._chunkCount) {
+            // In order: Can be added to the contiguous chunks
+            this.contiguousChunks.add(chunk);
+            this.nextOrderedSerial = chunk.serial + 1;
+        } else {
+            // Out of order: Needs to be temporarily stored in a queue
+            const ready = this.queueUnorderedChunk(chunk);
+            if (ready) {
+                // Queue is ready to be moved into the contiguous buffer.
+                this.moveQueuedChunks();
+            }
+        }
+
+        // Check if this is the last chunk received
+        if (chunk.endOfMessage) {
+            this.requiredChunkCount = chunk.serial + 1;
+        }
+
+        // Update chunk counter and timestamp
+        ++this._chunkCount;
+        this.lastUpdate = new Date().getTime();
+    }
+
+    /**
+     * Add a new chunk to its intended position in the out-of-order queue.
+     *
+     * Note: We continuously sort the queue by the serial number (ascending).
+     *
+     * @returns whether the queue is ready to be moved into the contiguous buffer.
+     */
+    private queueUnorderedChunk(chunk: Chunk): boolean {
+        // Append chunk
+        this.queuedChunksTotalByteLength += chunk.payload.byteLength;
+        if (this.queuedChunks === null) {
+            this.queuedChunks = [chunk];
+            return false;
+        }
+        this.queuedChunks.push(chunk);
+
+        // Sort chunk queue
+        this.queuedChunks.sort((a: Chunk, b: Chunk) => {
             if (a.serial < b.serial) {
                 return -1;
-            } else if (a.serial > b.serial) {
+            }
+            if (a.serial > b.serial) {
                 return 1;
             }
             return 0;
         });
 
-        // Allocate buffer
-        const capacity = this.chunks[0].data.byteLength * this.messageLength;
-        const buf = new Uint8Array(new ArrayBuffer(capacity));
-
-        // Add chunks to buffer
-        let offset = 0;
-        const firstSize = this.chunks[0].data.byteLength;
-        const contextList = [];
-        for (const chunk of this.chunks) {
-            if (chunk.data.byteLength > firstSize) {
-                throw new Error('No chunk may be larger than the first chunk of that message.');
-            }
-            buf.set(chunk.data, offset);
-            offset += chunk.data.length;
-            if (chunk.context !== undefined) {
-                contextList.push(chunk.context);
-            }
+        // Check if ready
+        const iterator = this.queuedChunks.values();
+        let previousChunk = iterator.next().value;
+        if (previousChunk.serial !== this.nextOrderedSerial) {
+            return false;
         }
-
-        // Return result object
-        return {
-            message: buf.slice(0, offset),
-            context: contextList,
-        };
+        for (const currentChunk of iterator) {
+            if (previousChunk.serial + 1 !== currentChunk.serial) {
+                return false;
+            }
+            previousChunk = currentChunk;
+        }
+        return true;
     }
 
     /**
-     * Return whether last chunk is older than the specified number of miliseconds.
+     * Moves the queued chunks to the contiguous buffer.
+     *
+     * Should be called once the queue contains consecutive chunks and there is
+     * no gap between the contiguous chunk buffer and our queued chunks.
+     */
+    private moveQueuedChunks(): void {
+        const chunk = this.contiguousChunks.addBatched(this.queuedChunks, this.queuedChunksTotalByteLength);
+        // Note: `chunk` is the last chunk in the sequence and has the highest serial number
+        this.nextOrderedSerial = chunk.serial + 1;
+        this.queuedChunks = null;
+    }
+
+    /**
+     * Get the reassembled message.
+     *
+     * @return The completed message.
+     * @throws Error if the message is not yet complete.
+     */
+    public getMessage(): Uint8Array {
+        if (!this.complete) {
+            throw new Error('Message not complete');
+        }
+        return this.contiguousChunks.getMessage();
+    }
+
+    /**
+     * Return whether last chunk is older than the specified number of milliseconds.
      */
     public isOlderThan(maxAge: number): boolean {
         const age = (new Date().getTime() - this.lastUpdate);
         return age > maxAge;
     }
-
-    /**
-     * Return the number of registered chunks.
-     */
-    public get chunkCount(): number {
-        return this.chunks.length;
-    }
 }
 
 /**
- * An Unchunker instance merges multiple chunks into a single Uint8Array.
- *
- * It keeps track of IDs, so only one Unchunker instance is necessary
- * to receive multiple messages.
+ * An unchunker reassembles multiple chunks into a single message.
  */
-export class Unchunker {
-    private chunks: Map<number, ChunkCollector> = new Map();
-
+abstract class AbstractUnchunker implements chunkedDc.Unchunker {
     /**
      * Message listener. Set by the user.
+     *
+     * Important: The passed message's underlying buffer will be reused with
+     *            the next chunk being reassembled.
      */
-    public onMessage: (message: Uint8Array, context?: any[]) => void = null;
+    public onMessage: (message: Uint8Array) => void = null;
+
+    /**
+     * Notify message listener about a complete message.
+     */
+    protected notifyListener(message: Uint8Array) {
+        if (this.onMessage != null) {
+            this.onMessage(message);
+        }
+    }
 
     /**
      * Add a chunk.
      *
-     * @param buf ArrayBuffer containing chunk with 9 byte header.
-     * @param context Arbitrary data that will be registered with the chunk and will be passed to the callback.
-     * @throws Error if message is smaller than the header length.
+     * @param chunkArray A chunk containing either a 1 byte or 9 byte header.
+     *   Important: The chunk's underlying buffer should be considered transferred!
+     * @throws Error if message is smaller than the header length or an unknown
+     *   mode has been detected.
      */
-    public add(buf: ArrayBuffer, context?: any): void {
-        // Parse chunk
-        const chunk = new Chunk(buf, context);
+    public abstract add(chunkArray: Uint8Array): void;
+}
 
-        // Ignore repeated chunks with the same serial
-        if (this.chunks.has(chunk.id) && this.chunks.get(chunk.id).hasSerial(chunk.serial)) {
-            return;
-        }
+/**
+ * An unchunker for reliable & ordered mode.
+ */
+export class ReliableOrderedUnchunker extends AbstractUnchunker implements chunkedDc.ReliableOrderedUnchunker {
+    private readonly reassembler: ContiguousBufferReassembler;
 
-        // If this is the only chunk in the message, return it immediately.
-        if (chunk.isEndOfMessage && chunk.serial === 0) {
-            this.notifyListener(chunk.data, context === undefined ? [] : [context]);
-            this.chunks.delete(chunk.id);
-            return;
-        }
-
-        // Otherwise, add chunk to chunks list
-        let collector: ChunkCollector;
-        if (this.chunks.has(chunk.id)) {
-            collector = this.chunks.get(chunk.id);
-        } else {
-            collector = new ChunkCollector();
-            this.chunks.set(chunk.id, collector);
-        }
-        collector.addChunk(chunk);
-
-        // Check if message is complete
-        if (collector.isComplete) {
-            // Merge and notify listener...
-            const merged = collector.merge();
-            this.notifyListener(merged.message, merged.context);
-            // ...then delete the chunks.
-            this.chunks.delete(chunk.id);
-        }
+    /**
+     * Create an unchunker for reliable & ordered mode.
+     *
+     * @param buffer A message buffer to be used for handing out messages.
+     *   If the message grows larger than the underlying buffer, it will be
+     *   replaced. A new buffer will be created when needed if not supplied.
+     */
+    public constructor(buffer?: ArrayBuffer) {
+        super();
+        this.reassembler = new ContiguousBufferReassembler(buffer);
     }
 
     /**
-     * If a message listener is set, notify it about a complete message.
+     * Add a chunk.
+     *
+     * @param chunkArray A chunk containing a 1 byte header.
+     *   Important: The chunk's underlying buffer should be considered transferred!
+     * @throws Error if message is smaller than the header length or an unknown
+     *   mode has been detected.
      */
-    private notifyListener(message: Uint8Array, context: any[]) {
-        if (this.onMessage != null) {
-            this.onMessage(message, context);
+    public add(chunkArray: Uint8Array): void {
+        // Parse chunk
+        const chunk = new Chunk(chunkArray, Mode.ReliableOrdered, RELIABLE_ORDERED_HEADER_LENGTH);
+
+        // If this is a single chunk that contains the whole message, return it immediately.
+        if (this.reassembler.empty && chunk.endOfMessage) {
+            this.notifyListener(chunk.payload);
+            return;
+        }
+
+        // Add the chunk's payload to the message buffer.
+        this.reassembler.add(chunk);
+
+        // Check if message is complete
+        if (chunk.endOfMessage) {
+            // Hand out the message and reset the buffer
+            this.notifyListener(this.reassembler.getMessage());
+        }
+    }
+}
+
+/**
+ * A reassembler optimised for unreliable & unordered mode.
+ */
+export class UnreliableUnorderedUnchunker extends AbstractUnchunker implements chunkedDc.UnreliableUnorderedUnchunker {
+    private reassemblers: Map<number, UnreliableUnorderedReassembler> = new Map();
+
+    /**
+     * Add a chunk.
+     *
+     * @param chunkArray A chunk containing a 9 byte header.
+     *   Important: The chunk's underlying buffer should be considered transferred!
+     * @throws Error if message is smaller than the header length or an unknown
+     *   mode has been detected.
+     */
+    public add(chunkArray: Uint8Array): void {
+        // Parse chunk
+        const chunk = new Chunk(chunkArray, Mode.UnreliableUnordered, UNRELIABLE_UNORDERED_HEADER_LENGTH);
+
+        // If this is a single chunk that contains the whole message, return it immediately.
+        if (chunk.endOfMessage && chunk.serial === 0) {
+            this.notifyListener(chunk.payload);
+            return;
+        }
+
+        // Add chunk to reassembler
+        let reassembler: UnreliableUnorderedReassembler = this.reassemblers.get(chunk.id);
+        if (reassembler === undefined) {
+            reassembler = new UnreliableUnorderedReassembler();
+            this.reassemblers.set(chunk.id, reassembler);
+        }
+        reassembler.add(chunk);
+
+        // Check if message is complete
+        if (reassembler.complete) {
+            // Hand out the message and delete the message's reassembler
+            this.notifyListener(reassembler.getMessage());
+            this.reassemblers.delete(chunk.id);
         }
     }
 
@@ -254,18 +456,15 @@ export class Unchunker {
      *
      * @param maxAge Remove incomplete messages that haven't been updated for
      *               more than the specified number of milliseconds.
-     * @return the number of removed chunks.
      */
     public gc(maxAge: number): number {
-        let removedItems = 0;
-        for (const entry of this.chunks) {
-            const msgId: number = entry[0];
-            const collector: ChunkCollector = entry[1];
-            if (collector.isOlderThan(maxAge)) {
-                removedItems += collector.chunkCount;
-                this.chunks.delete(msgId);
+        let removed = 0;
+        for (const [id, reassembler] of this.reassemblers) {
+            if (reassembler.isOlderThan(maxAge)) {
+                removed += reassembler.chunkCount;
+                this.reassemblers.delete(id);
             }
         }
-        return removedItems;
+        return removed;
     }
 }
