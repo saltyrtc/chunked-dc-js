@@ -12,6 +12,13 @@ Possible log types:
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
 
+### v2.0.0 (2019-02-26)
+
+- [changed] Split into reliable/ordered and unreliable/unordered mode. Note
+  that only unreliable/unordered mode is backwards compatible to 1.x.x.
+- [changed] Rewrote major parts of the code for performance and reduced
+  copying.
+
 ### v1.1.1 (2018-08-14)
 
 - [fixed] Add `HEADER_LENGTH` constant to type declarations
