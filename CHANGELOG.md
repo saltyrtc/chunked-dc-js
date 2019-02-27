@@ -12,6 +12,11 @@ Possible log types:
 - `[security]` to invite users to upgrade in case of vulnerabilities.
 
 
+### v2.0.1 (2019-02-27)
+
+- [fixed] Update incorrect type definition for the `ReliableOrderedChunker`
+  constructor.
+
 ### v2.0.0 (2019-02-26)
 
 - [changed] Split into reliable/ordered and unreliable/unordered mode. Note
@@ -33,7 +38,8 @@ Possible log types:
 
 ### v0.2.3 (2016-10-19)
 
-- [removed] Don't copy the type declarations to the dist directory. It confuses TypeScript.
+- [removed] Don't copy the type declarations to the dist directory. It confuses
+  TypeScript.
 
 ### v0.2.2 (2016-10-17)
 
