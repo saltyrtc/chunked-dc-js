@@ -1,7 +1,7 @@
 {
     "extends": "tslint:recommended",
     "rules": {
-        "file-header": [true, "Copyright \\(C\\) 2016-2019"],
+        "file-header": [true, "Copyright \\(C\\) 2016-2021"],
         "indent": [true, "spaces"],
         "interface-name": [true, "never-prefix"],
         "max-classes-per-file": false,

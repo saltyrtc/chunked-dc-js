@@ -2,7 +2,7 @@ version: 2
 
 references:
   docker-config: &docker-config
-    - image: quay.io/saltyrtc/circleci-image-js:latest
+    - image: docker.io/saltyrtc/circleci-image-js:firefox-66.0.5
       environment:
         FIREFOX_BIN: xvfb-firefox
 
@@ -12,17 +12,20 @@ jobs:
     steps:
       - checkout
 
+      # Show version
+      - run: node --version && npm --version
+
       # Install dependencies
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "package.json" }}
+            - v2-dependencies-{{ checksum "package-lock.json" }}
             # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+            - v2-dependencies-
       - run: npm install
       - save_cache:
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+          key: v2-dependencies-{{ checksum "package-lock.json" }}
 
       # Run tests
       - run: npm run rollup_tests && npm test
@@ -32,17 +35,20 @@ jobs:
     steps:
       - checkout
 
+      # Show version
+      - run: node --version && npm --version
+
       # Install dependencies
       - restore_cache:
           keys:
-            - v1-dependencies-{{ checksum "package.json" }}
+            - v2-dependencies-{{ checksum "package-lock.json" }}
             # fallback to using the latest cache if no exact match is found
-            - v1-dependencies-
+            - v2-dependencies-
       - run: npm install
       - save_cache:
           paths:
             - node_modules
-          key: v1-dependencies-{{ checksum "package.json" }}
+          key: v2-dependencies-{{ checksum "package-lock.json" }}
 
       # Run linter
       - run: npm run lint

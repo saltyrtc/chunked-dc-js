@@ -326,7 +326,7 @@ export default () => {
         });
 
         describe('cleanup', () => {
-            it('supports garbage collection', async(done) => {
+            it('supports garbage collection', (done) => {
                 const unchunker = new UnreliableUnorderedUnchunker();
                 expect(unchunker.gc(1000)).toEqual(0);
                 unchunker.add(Uint8Array.of(MORE, 0, 0, 0, 1, 0, 0, 0, 0, 1, 2));

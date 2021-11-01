@@ -6,8 +6,7 @@ config.input = 'tests/performance.ts';
 config.output.file = 'tests/performance.js';
 config.plugins.push(
     nodeResolve({
-        jsnext: true,
-        main: true
+        mainFields: ["jsnext", "main"],
     }),
 );
 config.plugins.push(
