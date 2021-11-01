@@ -65,3 +65,4 @@ declare namespace chunkedDc {
 
 // Entry point
 declare var chunkedDc: chunkedDc.Standalone;
+export = chunkedDc;
